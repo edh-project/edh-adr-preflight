@@ -1,0 +1,36 @@
+name: ADR preflight - fixture CI
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Unit tests
+        run: |
+          python3 -m unittest discover -s tests -v
+          echo "## Unit tests: passed" >> "$GITHUB_STEP_SUMMARY"
+      - name: Generate and assert fixture reports
+        run: |
+          python3 preflight.py --mode fixture --case clean --output reports/clean.json
+          rc=0
+          python3 preflight.py --mode fixture --case conflict --output reports/conflict.json || rc=$?
+          test "$rc" -eq 2
+          rc=0
+          python3 preflight.py --mode fixture --case incomplete --output reports/incomplete.json || rc=$?
+          test "$rc" -eq 3
+      - name: Publish validation dashboard
+        run: python3 summary.py reports/clean.json reports/conflict.json reports/incomplete.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fixture-reports-not-live-inference
+          path: reports/*.json

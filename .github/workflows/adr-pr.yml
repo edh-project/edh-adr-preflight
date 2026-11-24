@@ -1,0 +1,33 @@
+name: ADR preflight - PR structural check
+on:
+  pull_request:
+    paths:
+      - 'adr/**'
+permissions:
+  contents: read
+jobs:
+  structural:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Fetch PR head as data (never execute PR code)
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git -c credential.helper= -c 'credential.helper=!gh auth git-credential' fetch --no-tags origin "refs/pull/$PR_NUMBER/head"
+      - name: Check proposed ADR using base revision policy
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python3 pr_preflight.py --base "$BASE" --head "$HEAD" --output reports/pr.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr-structural-evidence
+          path: reports/pr.json

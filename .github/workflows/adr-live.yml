@@ -1,0 +1,46 @@
+name: ADR preflight - local inference (private demo only)
+on:
+  workflow_dispatch:
+    inputs:
+      case:
+        type: choice
+        options: [clean, conflict, incomplete]
+        required: true
+        default: clean
+permissions:
+  contents: read
+concurrency:
+  group: adr-local-inference
+  cancel-in-progress: false
+jobs:
+  live:
+    if: github.event.repository.private && github.ref == 'refs/heads/main' && vars.ADR_ENABLE_PRIVATE_RUNNER == 'true'
+    runs-on: [self-hosted, macOS, ARM64, adr-preflight]
+    timeout-minutes: 15
+    env:
+      ADR_PRIMARY_URL: http://127.0.0.1:8080/v1
+      ADR_PRIMARY_MODEL: ${{ vars.ADR_PRIMARY_MODEL }}
+      ADR_INDEPENDENT_URL: http://127.0.0.1:8081/v1
+      ADR_INDEPENDENT_MODEL: ${{ vars.ADR_INDEPENDENT_MODEL }}
+      ADR_TRIAGE_URL: ${{ vars.ADR_TRIAGE_URL }}
+      ADR_TRIAGE_MODEL: ${{ vars.ADR_TRIAGE_MODEL }}
+      CASE: ${{ inputs.case }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Review synthetic ADR using local inference
+        run: python3 preflight.py --mode live --case "$CASE" --output reports/live.json
+      - name: Publish live validation dashboard
+        if: always()
+        run: |
+          if test -f reports/live.json; then
+            python3 summary.py reports/live.json >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No live report generated" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-review-report
+          path: reports/live.json
