@@ -22,7 +22,7 @@ flowchart TD
   B -.-> D[CI/CD to AWS or GCP: future]
 ```
 
-See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI and a disabled-by-default manual workflow.
+See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI. A private-only workflow template is included as documentation, not an active GitHub Actions workflow. Live model validation has not yet been performed.
 
 ## Quick demo (Python 3.10+, no packages)
 
@@ -64,9 +64,13 @@ Optional lightweight triage: configure `ADR_TRIAGE_URL` and `ADR_TRIAGE_MODEL` f
 
 ## GitHub Actions
 
-`adr-fixtures.yml` runs unit tests and all three synthetic cases on GitHub-hosted runners. Its success proves fixture behavior only. It is safe to publish as a standalone demo subject to normal repo review.
+`adr-fixtures.yml` runs unit tests and all three synthetic cases on GitHub-hosted runners. Its success proves fixture behavior only. 
 
-`adr-live.yml` is a manual private-only workflow. Do NOT register your daily-use Mac as a public or broadly accessible self-hosted runner. Prefer executing the local CLI first, then an isolated trusted runner or an EDH outbound task executor. For an isolated private runner, restrict repo/runner access, use a dedicated account/environment, label `adr-preflight`, and set `ADR_ENABLE_PRIVATE_RUNNER=true` plus exact model aliases in repo variables. Default branch must be `main`. Keep the repo private while any runner is attached; guards inside YAML are not a security boundary against collaborators who can edit workflows. The current workflow uploads synthetic review reports; do not use sensitive ADRs without redesigning artifact handling. No fork PR runs on a local runner. Pin action SHAs and harden runner identity before enterprise adoption.
+[Private-only runner template](docs/examples/adr-live.private.yml) is deliberately outside `.github/workflows`. Do not enable it in a public repository or attach a daily-use Mac as a self-hosted runner. Run live examples via the local CLI on a trusted machine. No private infrastructure or production credentials are needed. Public CI must use GitHub-hosted runners; any future private inference integration requires a separately isolated execution boundary. The PR structural workflow reads ADRs against the base revision; it is a demo check, not an immutable security boundary. Protect workflow definitions before relying on it for enforcement.
+
+## Validation status
+
+The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/actions/runs/45484648754) completed successfully. Seven unit tests and three synthetic scenarios passed. This is evidence of deterministic fixture behavior, not live inference accuracy. Live Qwen/Gemma runs, agent execution and cloud deployments remain unverified or out of scope.
 
 ## Integration roadmap (not implemented)
 

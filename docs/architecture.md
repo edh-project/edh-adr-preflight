@@ -26,7 +26,7 @@ flowchart TD
   AG -.-> D[CI/CD to AWS or GCP: future]
 ```
 
-The fixture CI does not call a model. The live CLI/manual workflow runs the same three synthetic examples through local inference. The separate PR structural workflow reads changed proposed ADRs as data using the base revision policy and baseline; structurally valid proposals stay REVIEW until semantic review. It does not call a model. The solid lines represent PoC logical components, not a deployed end-to-end integration; dashed lines are explicitly out of scope. `ALLOW` is not permission to execute.
+The fixture CI does not call a model. The live CLI is designed to run the same three synthetic examples through local inference; the private-only workflow is an inactive template. Real model runs remain unverified. The separate PR structural workflow reads changed proposed ADRs as data using the base revision policy and baseline; structurally valid proposals stay REVIEW until semantic review. It does not call a model. The solid lines represent PoC logical components, not a deployed end-to-end integration; dashed lines are explicitly out of scope. `ALLOW` is not permission to execute.
 
 ## Detailed routing and policy
 
@@ -54,11 +54,11 @@ Review shape and quotations are actually checked before the escalation decision 
 
 ## Trust and exposure
 
-- Keep this repository private; only synthetic ADRs and reports belong here.
+- Only synthetic ADRs and reports belong in this demonstration repository; do not commit private material.
 - No organization-wide token, private reusable workflow, internal EDH data or production secret.
-- Default CI runs on GitHub-hosted Ubuntu. The manual local-runner workflow stays disabled until a separately isolated runner is explicitly configured. Do not attach a daily-use Mac.
+- Active CI runs on GitHub-hosted Ubuntu. The private-only local-runner workflow is stored outside the active workflows directory as an example. Never attach a self-hosted runner to this public demo, including through organization runner groups.
 - The local CLI restricts inference endpoints to loopback HTTP and disables proxying and redirects. Models are untrusted reviewers, not policy authorities.
-- The policy records source and code hashes for auditability; these are not signed attestations.
+- The policy records source and code hashes for auditability; these are not signed attestations. PR workflows are not an immutable enforcement boundary unless protected by independent repository or organization policy.
 - Production integration requires immutable workflow enforcement, bounded semantic review of changed ADRs, isolated execution, signed authorization, an acceptance dataset and independent verification.
 
 ## Evidence
