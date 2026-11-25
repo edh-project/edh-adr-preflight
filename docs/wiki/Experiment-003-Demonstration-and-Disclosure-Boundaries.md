@@ -109,6 +109,10 @@ An NDA alone does not authorize corporate system access, data export, model inge
 
 **Current status:** public methodology only; no restricted disclosure or internal transfer is authorized by this page. No company-specific evidence, private implementation, actual NDA or organizational agreement is published. Public artifacts remain synthetic or generic; internal findings remain internal.
 
+## Living research portfolio
+
+The [A-SDLC Research Portfolio](A-SDLC-Research-Portfolio.md) maintains independent candidate research directions, evolving value assessments, priorities, ownership and review decisions. It is a supporting organizational register, not a set of approved experiments or an implementation commitment. Knowledge and IP governance constrains its permitted evidence and disclosure.
+
 ## Related public methodology
 
 - [Experiment 003 — A-SDLC Organizational Alignment](Experiment-003-A-SDLC-Organizational-Alignment.md)

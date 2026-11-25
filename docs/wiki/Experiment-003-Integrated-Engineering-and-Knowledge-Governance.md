@@ -78,6 +78,10 @@ These are illustrative responsibilities, not assigned roles or actual decision r
 
 Current state: **ELABORATION ONLY; no verified organizational gap; no implementation authorization.** No new application code, API schemas or workflow changes follow from this document.
 
+## Living research portfolio
+
+The [A-SDLC Research Portfolio](A-SDLC-Research-Portfolio.md) maintains independent candidate research directions, evolving value assessments, priorities, ownership and review decisions. It is a supporting organizational register, not a set of approved experiments or an implementation commitment. Both Experiment 003 workstreams inform its review.
+
 ## Related public methodology
 
 - [Phase 0 — Organizational and Technical Discovery](Phase-0-Organizational-and-Technical-Discovery.md)

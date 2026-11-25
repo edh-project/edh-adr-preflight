@@ -129,6 +129,10 @@ These dates are planning targets, not confirmed meetings or commitments. If auth
 
 **Current status: discovery required; no verified organizational gap; no implementation authorization.** Public methodology is not a publication of the underlying organization-specific research. No application code, API schema, CI change or external provider integration is part of this increment.
 
+## Living research portfolio
+
+The [A-SDLC Research Portfolio](A-SDLC-Research-Portfolio.md) maintains independent candidate research directions, evolving value assessments, priorities, ownership and review decisions. It is a supporting organizational register, not a set of approved experiments or an implementation commitment. Engineering alignment informs its relevance, reuse and value assessment.
+
 ## Related public methodology
 
 - [Phase 0 — Organizational and Technical Discovery](Phase-0-Organizational-and-Technical-Discovery.md)

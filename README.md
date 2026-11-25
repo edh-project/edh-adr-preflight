@@ -112,6 +112,8 @@ The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/ac
   - [Track A — Engineering Alignment](docs/wiki/Experiment-003-A-SDLC-Organizational-Alignment.md): reuse-first discovery and evaluation.
   - [Track B — Knowledge & IP Governance](docs/wiki/Experiment-003-Demonstration-and-Disclosure-Boundaries.md): public, optional NDA-only and internal information boundaries.
 
+  - [A-SDLC Research Portfolio](docs/wiki/A-SDLC-Research-Portfolio.md): living register of candidate research directions, value, priority and ownership; not an implementation roadmap.
+
 ## Integration roadmap (not implemented)
 
 - Connect changed-ADR PR structural reports to a bounded semantic review executor; support arbitrary ADR inputs in live inference.
