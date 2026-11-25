@@ -103,6 +103,8 @@ The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/ac
 
 - [Phase 0 — Organizational and Technical Discovery](docs/wiki/Phase-0-Organizational-and-Technical-Discovery.md): objectives, team-level capabilities, approved resources, current-state architecture and integration readiness; no organization-specific findings are published.
 
+- [Experiment 002 — External Execution Governance Provider](docs/wiki/Experiment-002-External-Execution-Governance-Provider.md): proposed optional provider interface, mock contract tests and public/private integration boundary; no provider dependency or commercial commitment.
+
 ## Integration roadmap (not implemented)
 
 - Connect changed-ADR PR structural reports to a bounded semantic review executor; support arbitrary ADR inputs in live inference.

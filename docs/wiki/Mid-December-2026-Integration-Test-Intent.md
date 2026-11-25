@@ -163,6 +163,10 @@ These are candidate technologies, not claims about a specific company's stack. L
 
 The mid-December milestone is successful if a reviewed prototype can be reproduced in an isolated environment, preserves deterministic admission behavior, demonstrates bounded model orchestration and evidence handoff, and clearly reports remaining failures and unknowns. Real enterprise deployment is not required for this milestone. Production readiness, automatic agent dispatch, signed runtime grants, production AWS/GCP changes, and demonstrated universal JSONL superiority are explicitly out of scope.
 
+## Optional follow-on: external execution governance provider
+
+[Experiment 002 — External Execution Governance Provider](Experiment-002-External-Execution-Governance-Provider.md) explores a replaceable provider interface and synthetic contract tests. This is not a prerequisite for December prototyping and does not imply approval to use a particular provider. Any actual provider integration requires separate authorization, licensing and security review.
+
 ## Related research
 
 - [Current architectural design](https://github.com/edh-project/edh-adr-preflight/blob/main/docs/architecture.md)
