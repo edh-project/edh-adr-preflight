@@ -1,0 +1,190 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "adr-clean",
+      "kind": "adr",
+      "records": [
+        {
+          "id": "C1",
+          "kind": "constraint",
+          "text": "Coding agents must not receive production credentials."
+        },
+        {
+          "id": "C2",
+          "kind": "constraint",
+          "text": "Only the deployment pipeline may deploy after human approval."
+        },
+        {
+          "id": "P1",
+          "kind": "candidate",
+          "text": "Coding agent returns a patch without production credentials."
+        },
+        {
+          "id": "P2",
+          "kind": "candidate",
+          "text": "Pipeline deploys after human approval."
+        }
+      ],
+      "expected": []
+    },
+    {
+      "id": "adr-conflict",
+      "kind": "adr",
+      "records": [
+        {
+          "id": "C1",
+          "kind": "constraint",
+          "text": "Coding agents must not receive production credentials."
+        },
+        {
+          "id": "C2",
+          "kind": "constraint",
+          "text": "Only the deployment pipeline may deploy after human approval."
+        },
+        {
+          "id": "P1",
+          "kind": "candidate",
+          "text": "Give the coding agent production credentials."
+        },
+        {
+          "id": "P2",
+          "kind": "candidate",
+          "text": "Coding agent deploys directly without approval."
+        }
+      ],
+      "expected": [
+        [
+          "P1",
+          "C1"
+        ],
+        [
+          "P2",
+          "C2"
+        ]
+      ]
+    },
+    {
+      "id": "adr-rollback-conflict",
+      "kind": "adr",
+      "records": [
+        {
+          "id": "C1",
+          "kind": "constraint",
+          "text": "Retain patch artifacts for seven days."
+        },
+        {
+          "id": "C2",
+          "kind": "constraint",
+          "text": "Delete ephemeral workspaces after review."
+        },
+        {
+          "id": "P1",
+          "kind": "candidate",
+          "text": "Delete all patch artifacts immediately after review."
+        },
+        {
+          "id": "P2",
+          "kind": "candidate",
+          "text": "Delete the ephemeral workspace after review."
+        }
+      ],
+      "expected": [
+        [
+          "P1",
+          "C1"
+        ]
+      ]
+    },
+    {
+      "id": "code-clean",
+      "kind": "code",
+      "records": [
+        {
+          "id": "C1",
+          "kind": "constraint",
+          "text": "Agent requests must never include production tokens."
+        },
+        {
+          "id": "C2",
+          "kind": "constraint",
+          "text": "Agent execution must have a timeout of at most 60 seconds."
+        },
+        {
+          "id": "P1",
+          "kind": "candidate",
+          "text": "client.submit(patch, token=development_token)"
+        },
+        {
+          "id": "P2",
+          "kind": "candidate",
+          "text": "worker.run(timeout=30)"
+        }
+      ],
+      "expected": []
+    },
+    {
+      "id": "code-conflict",
+      "kind": "code",
+      "records": [
+        {
+          "id": "C1",
+          "kind": "constraint",
+          "text": "Agent requests must never include production tokens."
+        },
+        {
+          "id": "C2",
+          "kind": "constraint",
+          "text": "Agent execution must have a timeout of at most 60 seconds."
+        },
+        {
+          "id": "P1",
+          "kind": "candidate",
+          "text": "client.submit(patch, token=production_token)"
+        },
+        {
+          "id": "P2",
+          "kind": "candidate",
+          "text": "worker.run(timeout=120)"
+        }
+      ],
+      "expected": [
+        [
+          "P1",
+          "C1"
+        ],
+        [
+          "P2",
+          "C2"
+        ]
+      ]
+    },
+    {
+      "id": "code-clean-boundary",
+      "kind": "code",
+      "records": [
+        {
+          "id": "C1",
+          "kind": "constraint",
+          "text": "Deployment requires an approval flag equal to True."
+        },
+        {
+          "id": "C2",
+          "kind": "constraint",
+          "text": "The agent may not call deploy directly."
+        },
+        {
+          "id": "P1",
+          "kind": "candidate",
+          "text": "if approved is True: pipeline.deploy(patch)"
+        },
+        {
+          "id": "P2",
+          "kind": "candidate",
+          "text": "agent.generate_patch()"
+        }
+      ],
+      "expected": []
+    }
+  ]
+}

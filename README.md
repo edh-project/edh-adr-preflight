@@ -95,6 +95,10 @@ For a private-network endpoint use the local CLI or a separately isolated privat
 
 The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/actions/runs/45484648754) completed successfully. Seven unit tests and three synthetic scenarios passed. This is evidence of deterministic fixture behavior, not live inference accuracy. Live Qwen/Gemma runs, agent execution and cloud deployments remain unverified or out of scope.
 
+## Research experiments
+
+- [Experiment 001 — JSON vs JSONL for small local models](docs/wiki/Experiment-001-JSON-vs-JSONL.md): paired ADR/code pilot, reproducible fixture harness and opt-in live inference. Fixture results do not establish inference efficiency.
+
 ## Integration roadmap (not implemented)
 
 - Connect changed-ADR PR structural reports to a bounded semantic review executor; support arbitrary ADR inputs in live inference.

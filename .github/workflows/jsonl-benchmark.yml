@@ -1,0 +1,76 @@
+name: JSON vs JSONL - paired benchmark
+on:
+  pull_request:
+    paths:
+      - 'benchmark_jsonl.py'
+      - 'benchmarks/**'
+      - 'tests/test_jsonl_benchmark.py'
+      - '.github/workflows/jsonl-benchmark.yml'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Fixture harness or real inference (main only)'
+        type: choice
+        options: [fixture, live]
+        default: fixture
+      model:
+        description: 'Optional model ID override; blank uses ADR_PRIMARY_MODEL'
+        type: string
+        required: false
+      repeats:
+        description: 'Paired repetitions per case (1-5)'
+        type: number
+        default: 3
+      timeout_seconds:
+        description: 'Per-request timeout (1-300 s)'
+        type: number
+        default: 60
+permissions:
+  contents: read
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Unit tests
+        run: python3 -m unittest discover -s tests -v
+      - name: Exercise both formats with oracle stub
+        run: python3 benchmark_jsonl.py --mode fixture --repeats 3 --output reports/jsonl-fixture
+      - name: Publish comparison
+        if: always()
+        run: |
+          if test -f reports/jsonl-fixture/summary.md; then cat reports/jsonl-fixture/summary.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: json-vs-jsonl-fixture-NOT-inference
+          path: reports/jsonl-fixture/
+  live:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.mode == 'live'
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run paired live pilot
+        env:
+          ADR_ENDPOINT_POLICY: https-only
+          ADR_PRIMARY_URL: ${{ vars.ADR_PRIMARY_URL }}
+          ADR_PRIMARY_MODEL: ${{ inputs.model || vars.ADR_PRIMARY_MODEL }}
+          ADR_PRIMARY_API_KEY: ${{ secrets.ADR_PRIMARY_API_KEY }}
+          ADR_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+          REPEATS: ${{ inputs.repeats }}
+        run: python3 benchmark_jsonl.py --mode live --repeats "$REPEATS" --output reports/jsonl-live
+      - name: Publish comparison
+        if: always()
+        run: |
+          if test -f reports/jsonl-live/summary.md; then cat reports/jsonl-live/summary.md >> "$GITHUB_STEP_SUMMARY"; fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: json-vs-jsonl-live-pilot
+          path: reports/jsonl-live/
