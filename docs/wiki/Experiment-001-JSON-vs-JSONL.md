@@ -37,6 +37,10 @@ Does representing the same ADR/code evidence and findings as JSON Lines improve 
 
 ## Experimental design
 
+![EXPERIMENT 001 · JSON vs JSONL: Paired format comparison · identical records and decoding settings](assets/experiment-001-paired-benchmark.svg)
+
+*Visual overview. Fixture success is not evidence of model performance or JSONL superiority. The protocol below defines the comparison.*
+
 | Factor | Baseline | Experimental |
 |---|---|---|
 | Input | JSON array of addressable records | JSONL, one identical record per line |

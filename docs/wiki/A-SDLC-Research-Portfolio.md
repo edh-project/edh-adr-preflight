@@ -50,6 +50,10 @@ Suggested priority vocabulary: **P0** immediate research needed for an approved 
 
 Suggested lifecycle: Candidate → Scoped → Active research → Evidence review → Retain / Reprioritize / Merge / Split / Defer / Retire. A retained direction may propose a distinct experiment charter; only an explicit readiness decision under Experiment 003 authorizes a separately scoped implementation.
 
+![A-SDLC · LIVING RESEARCH PORTFOLIO: Organizational register · not a delivery roadmap](assets/asdlc-research-portfolio.svg)
+
+*Visual overview. All seven tracks are candidates · value, priority and owners unassessed. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart TD
   P["Living research portfolio: candidate directions"] --> A["Track A: engineering relevance, reuse and value"]

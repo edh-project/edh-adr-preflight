@@ -2,6 +2,10 @@
 
 ## End-to-end target architecture
 
+![ADR PREFLIGHT · ARCHITECTURE: Deterministic admission and bounded model review](wiki/assets/adr-preflight-architecture.svg)
+
+*Visual overview. Illustrative target and current PoC boundaries · not a deployment. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart TD
   PR[GitHub pull request: proposed ADR] --> CI[GitHub Actions: ADR preflight]

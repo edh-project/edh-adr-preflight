@@ -28,6 +28,10 @@ See [Phase 0 — Organizational and Technical Discovery](Phase-0-Organizational-
 
 ## Proposed target architecture
 
+![MID-DECEMBER · INTEGRATION INTENT: Proposed orchestration and portability · conditional on readiness](assets/mid-december-integration.svg)
+
+*Visual overview. Target architecture only · no confirmed meetings, deployment or access. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart TD
   IDP["Internal Developer Platform / CI"] --> API["Admission API or pipeline adapter"]

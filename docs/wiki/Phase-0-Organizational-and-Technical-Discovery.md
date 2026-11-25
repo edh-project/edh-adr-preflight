@@ -19,6 +19,10 @@ Start with the organization's outcomes, existing capabilities, constraints and i
 
 ## Objective hierarchy and feedback
 
+![PHASE 0 · ORGANIZATIONAL DISCOVERY: Trace candidate contributions to organizational outcomes](assets/phase-0-discovery.svg)
+
+*Visual overview. Illustrative hierarchy · confirm actual ownership and reporting relationships. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart TD
   O["Broader organizational unit: outcomes and priorities"] --> G["Engineering group: capabilities and dependencies"]

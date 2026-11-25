@@ -6,6 +6,10 @@
 
 An integration must fit the team's mandate, capabilities, resources, current backlog and the objectives of the larger engineering or product unit. Use Phase 0 discovery to identify the actual workflow and ownership. Do not introduce a new runtime, model stack or orchestration layer simply because the PoC supports it.
 
+![EXPERIMENT 002 · TEAM INTEGRATION: Start with the team, not with a product](assets/experiment-002-team-integration.svg)
+
+*Visual overview. Six alternatives, not a mandatory adoption ladder. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart LR
   U["Broader unit objectives"] --> T["Team goals and current work"]

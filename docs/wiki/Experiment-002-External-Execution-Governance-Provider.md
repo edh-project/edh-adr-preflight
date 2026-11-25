@@ -29,6 +29,10 @@ The public project must remain independently useful and runnable. An external pr
 
 ## Proposed architecture
 
+![EXPERIMENT 002 · EXTERNAL PROVIDER: Optional execution governance behind an implementation-neutral interface](assets/experiment-002-provider-boundary.svg)
+
+*Visual overview. Conceptual alternatives · no provider selected or implementation authorized. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart TD
   IDP["Internal Developer Platform / CI"] --> P["Public ADR Preflight"]

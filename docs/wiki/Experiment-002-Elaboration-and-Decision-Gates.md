@@ -16,6 +16,10 @@ Explore whether a portable architecture-to-execution governance capability can h
 
 ## Elaboration workflow
 
+![EXPERIMENT 002 · ELABORATION: Discovery and evidence precede an explicit implementation decision](assets/experiment-002-elaboration.svg)
+
+*Visual overview. No code, API schemas or workflows authorized by this proposal. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart TD
   D["Phase 0: organizational and technical discovery"] --> P["Agree problem, owner and baseline"]

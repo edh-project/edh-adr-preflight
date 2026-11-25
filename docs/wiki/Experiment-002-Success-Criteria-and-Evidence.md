@@ -29,6 +29,10 @@ Numeric performance thresholds, sample size, acceptable regression margins and c
 4. Use independent expected outcomes for quality and explicit negative authorization tests. Review evidence with the appropriate owner. Report uncertainty, sample limitations and confounders.
 5. Compare value and total cost against existing services and no change. Do not claim superiority from a green CI or a small uncontrolled pilot.
 
+![EXPERIMENT 002 · SUCCESS CRITERIA: Measure value without weakening controls](assets/experiment-002-evaluation.svg)
+
+*Visual overview. Proposed evaluation design · no measured outcome or agreed numerical target. The detailed Mermaid diagrams below retain the logical representation.*
+
 ```mermaid
 flowchart TD
   B["Agreed baseline and labeled cases"] --> A["Current workflow / baseline"]
