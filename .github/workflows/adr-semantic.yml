@@ -1,0 +1,74 @@
+name: ADR preflight - semantic validation (BYOI)
+on:
+  workflow_dispatch:
+    inputs:
+      case:
+        description: 'Synthetic ADR: clean (0002), conflict (0003), incomplete (0004)'
+        type: choice
+        options: [clean, conflict, incomplete]
+        default: conflict
+        required: true
+      primary_model:
+        description: 'Primary model ID; blank uses ADR_PRIMARY_MODEL variable'
+        type: string
+        required: false
+      independent_model:
+        description: 'Independent model ID; blank uses ADR_INDEPENDENT_MODEL variable'
+        type: string
+        required: false
+      triage_model:
+        description: 'Optional triage model ID; blank uses ADR_TRIAGE_MODEL variable'
+        type: string
+        required: false
+      routing_strategy:
+        description: 'Escalate adaptively or always invoke independent reviewer'
+        type: choice
+        options: [adaptive, always_independent]
+        default: adaptive
+        required: true
+      timeout_seconds:
+        description: 'Per-request timeout (1-300 seconds)'
+        type: number
+        default: 180
+        required: true
+permissions:
+  contents: read
+jobs:
+  semantic:
+    # Operator-only dispatch, default branch code, no PR or self-hosted runner.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate synthetic ADR against configured inference providers
+        env:
+          CASE: ${{ inputs.case }}
+          ADR_ENDPOINT_POLICY: https-only
+          ADR_PRIMARY_URL: ${{ vars.ADR_PRIMARY_URL }}
+          ADR_PRIMARY_MODEL: ${{ inputs.primary_model || vars.ADR_PRIMARY_MODEL }}
+          ADR_PRIMARY_API_KEY: ${{ secrets.ADR_PRIMARY_API_KEY }}
+          ADR_INDEPENDENT_URL: ${{ vars.ADR_INDEPENDENT_URL }}
+          ADR_INDEPENDENT_MODEL: ${{ inputs.independent_model || vars.ADR_INDEPENDENT_MODEL }}
+          ADR_INDEPENDENT_API_KEY: ${{ secrets.ADR_INDEPENDENT_API_KEY }}
+          ADR_TRIAGE_URL: ${{ vars.ADR_TRIAGE_URL }}
+          ADR_TRIAGE_MODEL: ${{ inputs.triage_model || vars.ADR_TRIAGE_MODEL }}
+          ADR_TRIAGE_API_KEY: ${{ secrets.ADR_TRIAGE_API_KEY }}
+          ADR_ROUTING_STRATEGY: ${{ inputs.routing_strategy }}
+          ADR_TIMEOUT_SECONDS: ${{ inputs.timeout_seconds }}
+        run: python3 preflight.py --mode live --case "$CASE" --output reports/live.json
+      - name: Publish validation dashboard
+        if: always()
+        run: |
+          if test -f reports/live.json; then
+            python3 summary.py reports/live.json >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No live report generated" >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-review-report
+          path: reports/live.json

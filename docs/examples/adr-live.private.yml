@@ -18,9 +18,9 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, adr-preflight]
     timeout-minutes: 15
     env:
-      ADR_PRIMARY_URL: http://127.0.0.1:8080/v1
+      ADR_PRIMARY_URL: ${{ vars.ADR_PRIMARY_URL }}
       ADR_PRIMARY_MODEL: ${{ vars.ADR_PRIMARY_MODEL }}
-      ADR_INDEPENDENT_URL: http://127.0.0.1:8081/v1
+      ADR_INDEPENDENT_URL: ${{ vars.ADR_INDEPENDENT_URL }}
       ADR_INDEPENDENT_MODEL: ${{ vars.ADR_INDEPENDENT_MODEL }}
       ADR_TRIAGE_URL: ${{ vars.ADR_TRIAGE_URL }}
       ADR_TRIAGE_MODEL: ${{ vars.ADR_TRIAGE_MODEL }}

@@ -7,7 +7,10 @@ from pathlib import Path
 EXPECTED = {'ADR-0002.md': 'ALLOW', 'ADR-0003.md': 'REVIEW', 'ADR-0004.md': 'REJECT'}
 
 def cell(value):
-    return str(value).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('|', '&#124;').replace('\n', ' ')
+    text=str(value).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('|', '&#124;').replace('\n', ' ').replace('\r',' ')
+    # Model-provided strings are data, not Markdown links, images or mentions.
+    import re
+    return re.sub(r'([\\\[\]()`*_!@])',r'\\\1',text)
 
 def render(paths):
     reports = [json.loads(p.read_text()) for p in paths]

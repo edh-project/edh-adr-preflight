@@ -22,7 +22,7 @@ flowchart TD
   B -.-> D[CI/CD to AWS or GCP: future]
 ```
 
-See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI. A private-only workflow template is included as documentation, not an active GitHub Actions workflow. Live model validation has not yet been performed.
+See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI and the manually dispatched BYOI (Bring Your Own Inference) workflow. A separate private-only runner template is documentation only. Live model validation has not yet been performed.
 
 ## Quick demo (Python 3.10+, no packages)
 
@@ -53,20 +53,43 @@ python3 preflight.py --mode live --case clean --output reports/live-clean.json
 python3 preflight.py --mode live --case conflict --output reports/live-conflict.json
 ```
 
-Optional lightweight triage: configure `ADR_TRIAGE_URL` and `ADR_TRIAGE_MODEL` for a separate loopback server (e.g. Qwen 4B, not included). Optional auth is supported through `ADR_PRIMARY_API_KEY`, `ADR_INDEPENDENT_API_KEY`, `ADR_TRIAGE_API_KEY` in the local environment; do not commit keys. Only loopback HTTP /v1 endpoints are accepted, with proxies and redirects disabled. No paid fallback. Use the exact model IDs reported by your installed llama-server. JSON schema support depends on server build/chat template; malformed or truncated outputs fail closed into REVIEW.
+Optional lightweight triage: configure `ADR_TRIAGE_URL` and `ADR_TRIAGE_MODEL` for a separate loopback server (e.g. Qwen 4B, not included). Optional auth is supported through `ADR_PRIMARY_API_KEY`, `ADR_INDEPENDENT_API_KEY`, `ADR_TRIAGE_API_KEY` in the local environment; do not commit keys. The local default permits only loopback HTTP API bases ending in /v1; set ADR_ENDPOINT_POLICY=https-only for trusted HTTPS endpoints. Addresses and ports are configurable. Proxies and redirects are disabled. No paid fallback. Use the exact model IDs reported by your installed llama-server. JSON schema support depends on server build/chat template; malformed or truncated outputs fail closed into REVIEW.
+
+## Bring Your Own Inference (GitHub Actions)
+
+The [semantic validation action](.github/workflows/adr-semantic.yml) runs manually on GitHub-hosted Ubuntu, only on main. Fork or clone this repository into an account where you have write access; enable Actions if needed. Use only synthetic ADRs and dedicated, low-privilege inference credentials because reports in public repositories are public.
+
+Configure **Settings → Secrets and variables → Actions → Variables**:
+
+| Variable | Example (replace with your own reachable service) |
+|---|---|
+| ADR_PRIMARY_URL | https://inference.example.org:8443/v1 |
+| ADR_PRIMARY_MODEL | your-primary-model-id |
+| ADR_INDEPENDENT_URL | https://review.example.org:9443/v1 |
+| ADR_INDEPENDENT_MODEL | your-independent-model-id |
+| ADR_TRIAGE_URL | optional HTTPS API base |
+| ADR_TRIAGE_MODEL | optional triage model ID |
+
+URLs include the scheme, hostname, optional custom port and API base ending in /v1. Hosted runners require HTTPS with a valid certificate and a reachable endpoint. localhost on GitHub is not your workstation. Do not expose a personal workstation to the internet just to run this demo.
+
+If authentication is needed, set repository **Secrets** ADR_PRIMARY_API_KEY, ADR_INDEPENDENT_API_KEY and optionally ADR_TRIAGE_API_KEY. Never put keys in URLs, variables or dispatch inputs. Configure trusted endpoint URLs in repository Variables, not in PRs or model responses. Use dedicated disposable credentials; an inference provider receives its own token and the synthetic documents.
+
+Open **Actions → ADR preflight - semantic validation (BYOI) → Run workflow**. Select a synthetic case and optionally override model IDs. Choose adaptive or always_independent routing and a per-request timeout (1–300 seconds). Empty overrides use repository Variables. Missing required model configuration or provider errors result in REVIEW; invalid ADRs return REJECT before contacting providers. REVIEW and REJECT produce nonzero exit codes intentionally; the summary and JSON report are still uploaded.
+
+For a private-network endpoint use the local CLI or a separately isolated private execution environment. Never attach a self-hosted runner to this public repository. No third-party model has been tested for compatibility yet; the adapter expects the structured-output contract used by the current llama.cpp client.
 
 ## Routing and policy
 
 1. Lint proposed ADR and accepted baseline. Any structural failure => REJECT (3) without inference.
 2. Optional lightweight triage; primary reasoning is always required.
-3. Independent review on high risk, any finding or reviewer failure.
+3. Independent review on high risk, any finding or reviewer failure; always_independent also invokes it for a clean low-risk ADR.
 4. Any finding, reviewer failure or high-risk classification => REVIEW (2). No findings on low-risk valid input => ALLOW (0), meaning preflight pass only. Human approval is mandatory before any actual execution; the PoC never dispatches agents, changes cloud resources or grants credentials. A model may miss a conflict or invent a plausible interpretation; exact quotation verification is not semantic truth verification. Risk labels are untrusted human inputs in this demo; production risk classification must be enforced independently.
 
 ## GitHub Actions
 
 `adr-fixtures.yml` runs unit tests and all three synthetic cases on GitHub-hosted runners. Its success proves fixture behavior only. 
 
-[Private-only runner template](docs/examples/adr-live.private.yml) is deliberately outside `.github/workflows`. Do not enable it in a public repository or attach a daily-use Mac as a self-hosted runner. Run live examples via the local CLI on a trusted machine. No private infrastructure or production credentials are needed. Public CI must use GitHub-hosted runners; any future private inference integration requires a separately isolated execution boundary. The PR structural workflow reads ADRs against the base revision; it is a demo check, not an immutable security boundary. Protect workflow definitions before relying on it for enforcement.
+[Private-only runner template](docs/examples/adr-live.private.yml) is deliberately outside `.github/workflows`. Do not enable it in a public repository or attach a daily-use Mac as a self-hosted runner. Run live examples via the local CLI on a trusted machine or use the hosted BYOI workflow with operator-configured HTTPS endpoints. No private infrastructure or production credentials are needed. Public CI must use GitHub-hosted runners; any future private inference integration requires a separately isolated execution boundary. The PR structural workflow reads ADRs against the base revision; it is a demo check, not an immutable security boundary. Protect workflow definitions before relying on it for enforcement.
 
 ## Validation status
 
