@@ -173,6 +173,8 @@ The December dates remain an intent, not an implementation commitment. For Exper
 
 ## A-SDLC alignment and publication boundary
 
+[Integrated Engineering and Knowledge Governance Framework](Experiment-003-Integrated-Engineering-and-Knowledge-Governance.md) connects both Experiment 003 tracks before the combined readiness decision. The engineering and disclosure workstreams are complementary; neither grants implementation approval.
+
 [Experiment 003 — A-SDLC Organizational Alignment](Experiment-003-A-SDLC-Organizational-Alignment.md) defines a generic reuse-first discovery and evaluation framework. Organization-specific evidence, findings, current/planned capability comparisons and integration decisions belong only in an approved access-controlled environment. The December window is conditional elaboration, not authorization to implement.
 
 ## Related research

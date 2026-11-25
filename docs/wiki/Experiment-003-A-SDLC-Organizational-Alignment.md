@@ -2,6 +2,14 @@
 
 **Status:** ELABORATION / DISCOVERY REQUIRED. Documentation only; no implementation, organizational access, deployment or adoption is authorized.
 
+## Track A — Engineering Alignment
+
+This is the engineering workstream of the [Integrated Engineering and Knowledge Governance Framework](Experiment-003-Integrated-Engineering-and-Knowledge-Governance.md). The complementary [Knowledge & IP Governance workstream](Experiment-003-Demonstration-and-Disclosure-Boundaries.md) establishes the permitted information and technology boundaries. Both contribute to the combined readiness decision.
+
+![Engineering alignment: current and planned discovery, reuse-first gap analysis and decision input](assets/experiment-003-engineering-alignment.svg)
+
+*Figure 1. Engineering workstream overview; detailed Mermaid diagrams follow.*
+
 ## Purpose
 
 A-SDLC (Agentic Software Development Lifecycle) extends software delivery practices with agent-assisted reasoning, planning, implementation, validation and operational feedback. The purpose of this experiment is to identify a measurable, complementary contribution to an existing organization's A-SDLC, rather than to reproduce its current or emerging capabilities.

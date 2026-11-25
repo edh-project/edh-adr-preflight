@@ -2,6 +2,14 @@
 
 **Status:** proposed information-handling and demonstration policy for elaboration. Not a signed NDA, legal opinion, license, corporate policy, or approval to disclose. No prospective organization is identified.
 
+## Track B — Knowledge & IP Governance
+
+This is the governance workstream of the [Integrated Engineering and Knowledge Governance Framework](Experiment-003-Integrated-Engineering-and-Knowledge-Governance.md). The complementary [Engineering Alignment workstream](Experiment-003-A-SDLC-Organizational-Alignment.md) establishes the organizational need, technical fit and candidate success criteria. Disclosure permission is not technical approval.
+
+![Knowledge and IP governance: public, optional restricted and internal information zones](assets/experiment-003-knowledge-ip-governance.svg)
+
+*Figure 1. Governance workstream overview; detailed Mermaid diagrams follow. Restricted review is optional; separate authorization is necessary for protected information.*
+
 ## Intent
 
 Demonstrate engineering competence and research methodology publicly while protecting the accumulated knowledge, investments, intellectual property and organization-specific conclusions of all parties. Public availability of individual source facts does not require publication of a curated evidence collection or its derived engineering analysis. This proposal governs our own disclosure choices; it does not assert that public facts become trade secrets.

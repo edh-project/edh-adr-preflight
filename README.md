@@ -107,9 +107,10 @@ The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/ac
 
   - [Elaboration and decision gates](docs/wiki/Experiment-002-Elaboration-and-Decision-Gates.md), [team integration options](docs/wiki/Experiment-002-Team-Integration-Options.md), [success criteria and evidence](docs/wiki/Experiment-002-Success-Criteria-and-Evidence.md). Documentation only; implementation deferred pending elaboration and approval.
 
-- [Experiment 003 — A-SDLC Organizational Alignment](docs/wiki/Experiment-003-A-SDLC-Organizational-Alignment.md): public discovery and reuse-first methodology; organization-specific research and findings remain outside the public project. Documentation only.
+- [Experiment 003 — Integrated Engineering and Knowledge Governance Framework](docs/wiki/Experiment-003-Integrated-Engineering-and-Knowledge-Governance.md): combined elaboration and readiness model; documentation only.
 
-  - [Demonstration and disclosure boundaries](docs/wiki/Experiment-003-Demonstration-and-Disclosure-Boundaries.md): public synthetic demonstration, potential NDA-only restricted review, and separately authorized internal context. No existing agreement or disclosure permission implied.
+  - [Track A — Engineering Alignment](docs/wiki/Experiment-003-A-SDLC-Organizational-Alignment.md): reuse-first discovery and evaluation.
+  - [Track B — Knowledge & IP Governance](docs/wiki/Experiment-003-Demonstration-and-Disclosure-Boundaries.md): public, optional NDA-only and internal information boundaries.
 
 ## Integration roadmap (not implemented)
 
