@@ -10,6 +10,12 @@ Evaluate whether the standalone EDH ADR Preflight PoC can be moved into a team's
 
 The PoC must remain runnable without LangChain, a personal workstation, a particular model vendor, or a mandatory external tracing service. Integration with any actual enterprise environment is subject to its owners' approval, security requirements, and available interfaces. The first target is an isolated mock or approved sandbox, not production.
 
+## Phase 0 — Organizational and Technical Discovery
+
+Before any organization-specific integration, establish team capabilities, approved resources, current architecture, delivery goals and the objectives of the broader organizational unit. Identify a measurable problem and evaluate existing internal alternatives before selecting a PoC integration.
+
+See [Phase 0 — Organizational and Technical Discovery](Phase-0-Organizational-and-Technical-Discovery.md) for stakeholder questions, deliverables, evidence boundaries and readiness gates. Independent sandbox research may proceed in parallel; organization-specific integration is conditional on readiness and approval.
+
 ## Starting point — verified as of 25 November 2026
 
 | Capability | Current evidence / limitation |
@@ -88,6 +94,7 @@ No personal runner is attached to the public repository. No internal ADRs, crede
 
 | Date | Workstream | Intended deliverable |
 |---|---|---|
+| Before organization-specific integration; parallel with independent research | Phase 0 discovery | Objective hierarchy, team capabilities, approved resources, current-state architecture, opportunity map and readiness decision. |
 | 8 December (Tue) | Orchestration | Typed graph state; deterministic lint, context preparation, optional triage, primary/independent review, evidence validation and policy nodes; fixture/live adapter interfaces; parity with standalone CLI. |
 | 9 December (Wed) | Runtime portability | Containerized service or CLI; versioned request/response contract; checkpoint/recovery prototype; configurable endpoints and timeouts; bounded retries; telemetry and evidence storage abstraction. |
 | 10 December (Thu) | IDP integration | Mock or explicitly approved sandbox pipeline adapter; evidence handoff; human review interruption/resume; draft contract example; failure-path integration tests. |
@@ -95,7 +102,11 @@ No personal runner is attached to the public repository. No internal ADRs, crede
 
 ```mermaid
 flowchart TD
-  B["Before integration: Experiment 001 live pilot"] --> D8["8 Dec: graph adapter and parity tests"]
+  B["Experiment 001: live pilot if available"] --> D8["8 Dec: graph adapter and parity tests"]
+  D0["Phase 0: organizational and technical discovery"] --> R0{"Integration readiness approved?"}
+  R0 -->|"Yes"| D10
+  R0 -->|"No"| MOCK["Synthetic sandbox only"]
+  MOCK --> D10
   D8 --> D9["9 Dec: portable runtime and recovery"]
   D9 --> D10["10 Dec: mock / approved sandbox IDP"]
   D10 --> MD["Mid-Dec: evidence review"]
