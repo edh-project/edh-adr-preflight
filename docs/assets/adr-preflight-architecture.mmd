@@ -1,0 +1,15 @@
+flowchart TD
+  PR[GitHub PR: ADR change] --> CI[ADR preflight]
+  CI --> L[Deterministic lint]
+  L -->|Invalid| X[REJECT]
+  L -->|Valid| M[Local model router]
+  M --> Q[Qwen 27B primary]
+  M --> G[Gemma 31B conditional]
+  Q --> R[Structured review]
+  G --> R
+  R --> P[Deterministic policy]
+  P --> A[ALLOW: preflight only]
+  P --> H[REVIEW]
+  A --> C[Draft contract]
+  C -.-> B[Human approval and coding agents: future]
+  B -.-> D[CI/CD to AWS or GCP: future]

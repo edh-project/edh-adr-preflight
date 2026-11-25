@@ -3,6 +3,32 @@
 A standalone demonstration of architecture-to-execution governance for agentic software delivery. Deterministic ADR checks precede local LLM semantic review; a deterministic policy interprets the review, never granting runtime permissions. AWS/GCP are example delivery targets, not deployed infrastructure.
 
 
+## Engineering Portfolio — start here
+
+**EDH — Agentic Software Delivery Research**  
+Architecture · Execution Governance · Engineering Evidence · Research Portfolio
+
+| Reviewer navigation | Purpose |
+|---|---|
+| **[Engineering Portfolio](https://github.com/edh-project/edh-adr-preflight/wiki/Home)** | Executive overview and demonstrated engineering capabilities |
+| [Engineering Evidence & Development Roadmap](https://github.com/edh-project/edh-adr-preflight/wiki/Engineering-Evidence-and-Development-Roadmap) | Acceptance evidence, case studies and next engineering steps |
+| [Research Directions R01–R08](https://github.com/edh-project/edh-adr-preflight/wiki/A-SDLC-Research-Portfolio) | Eight research directions with explicit readiness status |
+| [Technical Review & Acceptance Case](https://github.com/edh-project/edh-adr-preflight/wiki/Technical-Review-and-Acceptance-Case) | Proposed end-to-end scenario, feedback questions and acceptance gates |
+| [Technical Discussion & Feedback](https://github.com/edh-project/edh-adr-preflight/discussions/3) | Pinned discussion for architecture, reuse and acceptance criteria |
+
+### What is implemented versus proposed
+
+| Capability | Readiness / evidence |
+|---|---|
+| Deterministic ADR preflight | Implemented; [fixture CI passed](https://github.com/edh-project/edh-adr-preflight/actions/runs/45622863474) |
+| Model-assisted review (BYOI) | Configurable adapter implemented; live inference evaluation pending |
+| Governed MCP execution (R08) | [Standalone synthetic PoC](https://github.com/edh-project/edh-mcp); [13-test acceptance CI passed](https://github.com/edh-project/edh-mcp/actions/runs/45615956732) |
+| Execution specification | Human-authored draft example; general contract generation and integrated handoff pending |
+| Cross-component verification and evidence | Proposed end-to-end acceptance case; component evidence is not an integrated acceptance result |
+| Enterprise IDP / AWS / GCP delivery | Proposed integration architecture; organizational discovery and approval required |
+
+Reviewer feedback is most useful on the actual engineering objective, existing capabilities to reuse, authority boundaries, representative workloads and measurable acceptance criteria. The next step is to agree a bounded, reproducible case before committing to integration. No production deployment or organization-wide adoption is implied.
+
 ## Feedback & Contact
 
 - [Technical review and architecture discussion](https://github.com/edh-project/edh-adr-preflight/discussions/3) — feedback, research priorities and acceptance criteria.
@@ -12,6 +38,10 @@ A standalone demonstration of architecture-to-execution governance for agentic s
 Discussions and issues are public. Do not include confidential information. For reviewers already in contact with L B: L B has the author's direct contact details. For private communication, use your existing introduction or direct channel. Do not post sensitive details.
 
 ## Architecture
+
+![ADR preflight architecture and future execution boundary](docs/assets/adr-preflight-architecture.svg)
+
+*Visual overview. Solid paths represent the preflight reference; dashed paths represent proposed future integration. The Mermaid source below is also retained as a [versioned file](docs/assets/adr-preflight-architecture.mmd).*
 
 ```mermaid
 flowchart TD
