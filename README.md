@@ -107,6 +107,8 @@ The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/ac
 
   - [Elaboration and decision gates](docs/wiki/Experiment-002-Elaboration-and-Decision-Gates.md), [team integration options](docs/wiki/Experiment-002-Team-Integration-Options.md), [success criteria and evidence](docs/wiki/Experiment-002-Success-Criteria-and-Evidence.md). Documentation only; implementation deferred pending elaboration and approval.
 
+- [Experiment 003 — A-SDLC Organizational Alignment](docs/wiki/Experiment-003-A-SDLC-Organizational-Alignment.md): public discovery and reuse-first methodology; organization-specific research and findings remain outside the public project. Documentation only.
+
 ## Integration roadmap (not implemented)
 
 - Connect changed-ADR PR structural reports to a bounded semantic review executor; support arbitrary ADR inputs in live inference.

@@ -171,6 +171,10 @@ The December dates remain an intent, not an implementation commitment. For Exper
 
 [Experiment 002 — External Execution Governance Provider](Experiment-002-External-Execution-Governance-Provider.md) explores a replaceable provider interface and synthetic contract tests. This is not a prerequisite for December prototyping and does not imply approval to use a particular provider. Any actual provider integration requires separate authorization, licensing and security review.
 
+## A-SDLC alignment and publication boundary
+
+[Experiment 003 — A-SDLC Organizational Alignment](Experiment-003-A-SDLC-Organizational-Alignment.md) defines a generic reuse-first discovery and evaluation framework. Organization-specific evidence, findings, current/planned capability comparisons and integration decisions belong only in an approved access-controlled environment. The December window is conditional elaboration, not authorization to implement.
+
 ## Related research
 
 - [Current architectural design](https://github.com/edh-project/edh-adr-preflight/blob/main/docs/architecture.md)
