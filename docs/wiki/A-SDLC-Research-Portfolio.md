@@ -1,8 +1,9 @@
 # A-SDLC Research Portfolio — Living Research Directions Register
 
-**Status:** proposed research portfolio / unprioritized / documentation only  
-**Initial review:** 25 November 2026  
-**Portfolio steward:** unassigned  
+**Status:** proposed research portfolio / unprioritized / documentation only
+
+**Initial review:** 25 November 2026
+**Portfolio steward:** unassigned
 **Next review:** during Experiment 003 elaboration, subject to availability and approval.
 
 ## Purpose and scope
