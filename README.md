@@ -2,6 +2,15 @@
 
 A standalone demonstration of architecture-to-execution governance for agentic software delivery. Deterministic ADR checks precede local LLM semantic review; a deterministic policy interprets the review, never granting runtime permissions. AWS/GCP are example delivery targets, not deployed infrastructure.
 
+
+## Feedback & Contact
+
+- [Technical review and architecture discussion](https://github.com/edh-project/edh-adr-preflight/discussions/3) — feedback, research priorities and acceptance criteria.
+- [Report a reproducible technical finding](https://github.com/edh-project/edh-adr-preflight/issues/new/choose) — defects, test results and documentation corrections.
+- [Technical Review & Acceptance Case](https://github.com/edh-project/edh-adr-preflight/wiki/Technical-Review-and-Acceptance-Case) — current readiness, review questions and proposed evidence gates.
+
+Discussions and issues are public. Do not include confidential information. For private communication, arrange contact with the author through an existing direct channel; do not publish sensitive details.
+
 ## Architecture
 
 ```mermaid

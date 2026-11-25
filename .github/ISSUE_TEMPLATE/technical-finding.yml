@@ -1,0 +1,27 @@
+name: Technical finding
+description: Report a reproducible defect, documentation gap or acceptance finding
+title: "[Finding]: "
+body:
+  - type: markdown
+    attributes:
+      value: "Public repository: use synthetic or public information only. Do not submit secrets, private source, internal logs or personal data."
+  - type: textarea
+    id: context
+    attributes:
+      label: Context and revision
+      description: Component, commit or document, and environment.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Reproduction and evidence
+      description: Steps, expected result, actual result, sanitized evidence.
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and suggested acceptance criterion
+    validations:
+      required: false
