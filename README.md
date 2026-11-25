@@ -99,6 +99,8 @@ The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/ac
 
 - [Experiment 001 — JSON vs JSONL for small local models](docs/wiki/Experiment-001-JSON-vs-JSONL.md): paired ADR/code pilot, reproducible fixture harness and opt-in live inference. Fixture results do not establish inference efficiency.
 
+- [Mid-December 2026 — Integration Test Intent](docs/wiki/Mid-December-2026-Integration-Test-Intent.md): proposed LangChain/LangGraph orchestration, runtime portability and controlled IDP integration tests, targeted for 8–10 December and mid-month review.
+
 ## Integration roadmap (not implemented)
 
 - Connect changed-ADR PR structural reports to a bounded semantic review executor; support arbitrary ADR inputs in live inference.
