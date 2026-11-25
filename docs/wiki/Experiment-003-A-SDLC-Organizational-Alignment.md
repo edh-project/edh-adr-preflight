@@ -33,6 +33,10 @@ flowchart TD
 
 The diagram is a proposed information-handling model, not an existing corporate data flow. Transfer into the organizational boundary is conditional on appropriate authorization and rights.
 
+## Demonstration and disclosure policy
+
+See [Demonstration and Disclosure Boundaries](Experiment-003-Demonstration-and-Disclosure-Boundaries.md) for the public / restricted (potential NDA-only) / internal information model, staged demonstration plan and theoretical confidentiality position. An NDA is not assumed to exist; restricted disclosure and internal transfer require separate explicit authorization and applicable rights.
+
 ## Research hypotheses
 
 | ID | Hypothesis to evaluate privately |
