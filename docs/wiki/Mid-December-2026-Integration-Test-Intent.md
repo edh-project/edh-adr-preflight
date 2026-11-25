@@ -163,6 +163,10 @@ These are candidate technologies, not claims about a specific company's stack. L
 
 The mid-December milestone is successful if a reviewed prototype can be reproduced in an isolated environment, preserves deterministic admission behavior, demonstrates bounded model orchestration and evidence handoff, and clearly reports remaining failures and unknowns. Real enterprise deployment is not required for this milestone. Production readiness, automatic agent dispatch, signed runtime grants, production AWS/GCP changes, and demonstrated universal JSONL superiority are explicitly out of scope.
 
+## Elaboration gate before new implementation
+
+The December dates remain an intent, not an implementation commitment. For Experiment 002 the 8–10 December window is reserved for discovery, architecture/option review and agreement on success criteria; no provider code or integration begins until an explicit readiness decision. See [Elaboration and Decision Gates](Experiment-002-Elaboration-and-Decision-Gates.md), [Team Integration Options](Experiment-002-Team-Integration-Options.md) and [Success Criteria and Evidence Plan](Experiment-002-Success-Criteria-and-Evidence.md). The existing LangGraph/IDP prototype schedule above is conditional on the relevant discovery and readiness decisions.
+
 ## Optional follow-on: external execution governance provider
 
 [Experiment 002 — External Execution Governance Provider](Experiment-002-External-Execution-Governance-Provider.md) explores a replaceable provider interface and synthetic contract tests. This is not a prerequisite for December prototyping and does not imply approval to use a particular provider. Any actual provider integration requires separate authorization, licensing and security review.

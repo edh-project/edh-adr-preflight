@@ -1,6 +1,14 @@
 # Experiment 002 — External Execution Governance Provider
 
-**Status:** proposed architecture and interoperability experiment; not implemented. No commercial relationship, product availability, enterprise deployment, or authorization to integrate is implied.
+**Status:** ELABORATION / NOT AUTHORIZED FOR IMPLEMENTATION. Proposed architecture and interoperability experiment; not implemented. No commercial relationship, product availability, enterprise deployment, or authorization to integrate is implied.
+
+## Elaboration artifact set
+
+- [Elaboration and Decision Gates](Experiment-002-Elaboration-and-Decision-Gates.md) — hypotheses, required outputs, readiness checklist and December discussion window.
+- [Hypothetical Team Integration Options](Experiment-002-Team-Integration-Options.md) — adoption patterns, reuse, alternatives and trust boundaries.
+- [Success Criteria and Evidence Plan](Experiment-002-Success-Criteria-and-Evidence.md) — metrics, baseline, hard gates and decision rules.
+
+All subsequent interface, mock, contract-test and adapter work is proposed future scope. No new code, schemas, workflows or provider integration until elaboration and explicit approval.
 
 ## Objective
 
@@ -99,7 +107,7 @@ sequenceDiagram
 
 The sequence describes intended behavior, not an implementation guarantee. In-flight cancellation and irreversible side effects require explicit semantics; revocation cannot undo completed effects.
 
-## Experiment plan
+## Future experiment plan (conditional on elaboration approval)
 
 1. Define a minimal public provider contract and a synthetic mock implementation, with no private repository dependencies or external calls in public CI.
 2. Add contract tests against the mock, including negative paths. Keep the standalone preflight decision behavior unchanged.
@@ -131,6 +139,6 @@ Public CI proves contract-harness behavior only. A real provider test requires s
 
 ## Relationship to the December research plan
 
-This is an optional follow-on to [Phase 0](Phase-0-Organizational-and-Technical-Discovery.md) and the [mid-December integration test intent](Mid-December-2026-Integration-Test-Intent.md). Initial work may consist entirely of public interface design and mock contract tests. It is not a commitment to integrate a specific provider on December 8–10. Real integration is gated by organizational need, access, reuse analysis and approvals.
+This is an optional follow-on to [Phase 0](Phase-0-Organizational-and-Technical-Discovery.md) and the [mid-December integration test intent](Mid-December-2026-Integration-Test-Intent.md). Initial work consists of documentation and elaboration only; interface design implementation and mock contract tests are deferred until explicit approval. It is not a commitment to integrate a specific provider on December 8–10. Real integration is gated by organizational need, access, reuse analysis and approvals.
 
 **Exit criterion:** demonstrate provider-neutral interoperability using synthetic evidence, preserve independent admission and execution authority boundaries, and identify the conditions required for a future authorized pilot. Neither a particular provider nor a commercial outcome is required.
