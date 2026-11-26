@@ -1,0 +1,12 @@
+flowchart TD
+ A[Frozen labelled ADR corpus] --> B[A: ADR only]
+ A --> C[B: Markdown context]
+ A --> D[C: identical JSONL facts]
+ A --> E[D: JSONL + retrieval]
+ B --> F[Identical inference settings]
+ C --> F
+ D --> F
+ E --> F
+ F --> G[Blind evaluation against gold labels]
+ G --> H[Quality, cost, latency and risk]
+ H --> I[Deployment decision]

@@ -15,7 +15,8 @@ Architecture · Execution Governance · Engineering Evidence · Research Portfol
 |---|---|
 | **[Engineering Portfolio](https://github.com/edh-project/edh-adr-preflight/wiki/Home)** | Executive overview and demonstrated engineering capabilities |
 | [Engineering Evidence & Development Roadmap](https://github.com/edh-project/edh-adr-preflight/wiki/Engineering-Evidence-and-Development-Roadmap) | Acceptance evidence, case studies and next engineering steps |
-| [Research Directions R01–R08](https://github.com/edh-project/edh-adr-preflight/wiki/A-SDLC-Research-Portfolio) | Eight research directions with explicit readiness status |
+| [Research Directions R01–R09](https://github.com/edh-project/edh-adr-preflight/wiki/A-SDLC-Research-Portfolio) | Nine registered research directions with explicit readiness status |
+| [R10 — Cost-Efficient Architectural Governance in Agentic SDLC](docs/research/r10/README.md) | Candidate research proposal: small models, structured context, inference cascades and enterprise economics |
 | [Technical Review & Acceptance Case](https://github.com/edh-project/edh-adr-preflight/wiki/Technical-Review-and-Acceptance-Case) | Proposed end-to-end scenario, feedback questions and acceptance gates |
 | [Technical Discussion & Feedback](https://github.com/edh-project/edh-adr-preflight/discussions/3) | Pinned discussion for architecture, reuse and acceptance criteria |
 

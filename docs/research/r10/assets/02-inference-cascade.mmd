@@ -1,0 +1,14 @@
+flowchart TD
+ A[Proposed ADR + versioned context] --> B[Deterministic checks]
+ B -->|Deterministic result| J[Preflight result - not approval]
+ B -->|Semantic check| C[Small local model]
+ C --> D{Evidence and risk gate}
+ D -->|Verified low risk| J
+ D -->|Uncertain or complex| E[Larger local model]
+ D -->|Mandatory review| I[Human review]
+ E --> F{Second evidence and risk gate}
+ F -->|Verified low risk| J
+ F -->|Unresolved| G{External disclosure permitted?}
+ G -->|Yes| H[Approved cloud model]
+ G -->|No| I
+ H --> I --> J
