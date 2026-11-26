@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 from typing import Literal
+from urllib.error import HTTPError
 
 from benchmark_jsonl import ARMS, score
 from preflight import CASES, ROOT, live_review, redact_report, validate_endpoint, validate_review
@@ -79,13 +80,22 @@ def probe(model, url):
         sources = {**accepted, candidate: (ROOT / "adr/proposed" / candidate).read_text()}
         result = {"case": case, "valid": False}
         try:
-            response, metadata = live_review("primary", sources, candidate)
-            result.update(metadata)
+            response, metadata = live_review("primary", sources, candidate, diagnostic=result)
+            result["error_stage"] = "model_identity"
             if metadata["model_reported"] != model:
                 raise ValueError("Reported model does not match the requested alias")
+            result["error_stage"] = "review_validation"
             result.update(valid=True, findings=validate_review(response, sources))
+            del result["error_stage"]
         except (OSError, ValueError, TypeError, KeyError, IndexError) as error:
             result["error_type"] = type(error).__name__
+            if isinstance(error, HTTPError):
+                result["http_status"] = error.code
+            elif isinstance(error, json.JSONDecodeError):
+                result.update(json_error=error.msg, line=error.lineno, column=error.colno)
+            elif result.get("error_stage") in ("finish_reason", "model_identity", "review_validation"):
+                # These messages are authored by the local validator.
+                result["error_detail"] = str(error)
         results.append(result)
     return redact_report({"model": model, "results": results, "execution_authorized": False})
 

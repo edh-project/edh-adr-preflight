@@ -4,8 +4,10 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
+from urllib.error import HTTPError
 
 from benchmark_jsonl import DATASET, compact, sha
+from preflight import SCHEMA
 from review_validation import BOUNDARY_RECORDS_SHA256, deployment_rules, probe, replay
 
 
@@ -68,20 +70,38 @@ class LiveReviewContractTests(unittest.TestCase):
         request = opener.open.call_args.args[0]
         self.assertEqual(request.full_url, "http://127.0.0.1:8092/v1/chat/completions")
         self.assertIsNone(request.get_header("Authorization"))
-        self.assertEqual(json.loads(request.data)["response_format"]["type"], "json_schema")
+        self.assertEqual(json.loads(request.data)["response_format"], {
+            "type": "json_schema",
+            "json_schema": {"name": "adr_review", "strict": True, "schema": SCHEMA},
+        })
 
     def test_incomplete_invalid_or_wrong_model_is_reported(self):
         bad_quote = json.dumps({"findings": [
             {"category": "conflict", "severity": "critical", "source": "ADR-0001.md",
              "quote": "invented text", "reason": "synthetic test"}
         ]})
-        for content, settings in (
-            ('{"findings":[]}', {"finish": "length"}),
-            ('{"findings":[]}', {"returned": "qwen4b"}),
-            ('{"findings":', {}),
-            (bad_quote, {}),
+        for content, settings, stage, details in (
+            ('{"findings":[]}', {"finish": "length"}, "finish_reason", {"finish_reason": "length"}),
+            ('{"findings":[]}', {"returned": "qwen4b"}, "model_identity", {"model_reported": "qwen4b"}),
+            ('{"findings":', {}, "model_json", {"line": 1, "column": 13}),
+            (bad_quote, {}, "review_validation", {"error_detail": "Ungrounded evidence quote"}),
         ):
             with self.subTest(content=content, settings=settings):
                 report, _ = self.call_probe(content, **settings)
-                self.assertTrue(all(not row["valid"] and "error_type" in row
-                                    for row in report["results"]))
+                for row in report["results"]:
+                    self.assertFalse(row["valid"])
+                    self.assertEqual(row["error_stage"], stage)
+                    for key, value in details.items():
+                        self.assertEqual(row[key], value)
+
+    def test_probe_reports_http_status_without_provider_body(self):
+        opener = MagicMock()
+        opener.open.side_effect = HTTPError("http://127.0.0.1:8092/v1", 404, "private body", {}, None)
+        with patch.dict(os.environ, {}, clear=True), \
+                patch("urllib.request.build_opener", return_value=opener):
+            report = probe("qwen27b", "http://127.0.0.1:8092/v1")
+        for row in report["results"]:
+            self.assertFalse(row["valid"])
+            self.assertEqual(row["error_stage"], "http")
+            self.assertEqual(row["http_status"], 404)
+        self.assertNotIn("private body", json.dumps(report))

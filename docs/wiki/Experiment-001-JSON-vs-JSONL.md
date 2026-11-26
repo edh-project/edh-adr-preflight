@@ -233,6 +233,12 @@ When the probe finishes, return to Terminal 1. Press Ctrl+C and run the next `ed
 
 Read the two rows in `probe.json`. A row with `valid: true` passed the live response contract, including quote validation. Check `findings` independently: a valid empty array on the conflicting ADR is a missed conflict. The probe exits with status 0 when both rows pass validation and 1 when at least one fails. A setup error exits with status 2.
 
+#### Initial live run and request fix
+
+All six responses from the first schema probe failed with the old request shape. The active Gemma and Qwen 27B models reported the expected aliases and returned parseable JSON, which the findings validator rejected. Qwen 4B failed at JSON decoding. An earlier Qwen 27B attempt ended with two HTTP errors and is recorded separately from the six responses.
+
+For the measured runtime (build 10621, commit `c1d0e7a00`), [the server implementation](https://github.com/ggml-org/llama.cpp/blob/c1d0e7a00/tools/server/server-common.cpp) reads the constrained schema from `response_format.json_schema.schema` when the type is `json_schema`. The original request placed the schema directly under `response_format`. Preflight now sends the nested wrapper and the probe reports the failure stage, HTTP status or JSON error location where applicable. The initial observations remain the baseline for a new two-case probe per model.
+
 ## Prespecified interpretation
 
 Fixture runs always report HARNESS_ONLY_NOT_MEASURED: the stub is given gold labels to test the pipeline, not model ability. Timing and token metrics are absent, not zero. A live run is inconclusive by default. With at least three repetitions and all paired outputs valid, a JSONL quality regression is flagged if exact matches decrease or FP/FN increase. Otherwise JSONL is marked promising (not proven) only if exact matches do not decrease, FP/FN do not increase, and median latency or total tokens improves on all measured pairs. No statistical significance or general superiority is claimed. The pilot must be repeated on a larger independent corpus before an adoption decision.
