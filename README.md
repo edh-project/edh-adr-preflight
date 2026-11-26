@@ -4,7 +4,7 @@
 
 [See the example PR](https://github.com/edh-project/edh-adr-preflight/pull/1) · [See the check result](https://github.com/edh-project/edh-adr-preflight/actions/runs/45569140916)
 
-The project also explores local model-assisted review. See the [initial local evaluation and proposed adapter fix](https://github.com/edh-project/edh-adr-preflight/pull/5). Execution authorization is a separate decision. AWS and GCP are proposed delivery targets.
+In a [local synthetic matched-pair run](docs/evidence/adr-live-matched-pair.md), Qwen and Gemma found the same conflict after both ADRs passed structural checks. The compatible ADR also went to human review because the models raised other findings. Execution authorization is a separate decision. AWS and GCP are proposed delivery targets.
 
 ## Engineering Portfolio
 
@@ -24,7 +24,7 @@ Architecture · Execution Governance · Engineering Evidence · Research Portfol
 | Capability | Readiness / evidence |
 |---|---|
 | Deterministic ADR preflight | Implemented; [fixture CI passed](https://github.com/edh-project/edh-adr-preflight/actions/runs/45622863474) |
-| Model-assisted review (BYOI) | Configurable adapter implemented; [local matched-pair evaluation and proposed fix](https://github.com/edh-project/edh-adr-preflight/pull/5) |
+| Model-assisted review (BYOI) | Configurable adapter implemented. [Local matched-pair evidence](docs/evidence/adr-live-matched-pair.md) |
 | Governed MCP execution (R08) | [Standalone synthetic PoC](https://github.com/edh-project/edh-mcp); [13-test acceptance CI passed](https://github.com/edh-project/edh-mcp/actions/runs/45615956732) |
 | Execution specification | Human-authored draft example; general contract generation and integrated handoff pending |
 | Cross-component verification and evidence | Proposed end-to-end acceptance case; component evidence is not an integrated acceptance result |
