@@ -39,6 +39,8 @@ The last two commands intentionally return 2 and 3. Fixture mode uses determinis
 
 ## Live local inference
 
+To check whether a local model returns responses the preflight validator can use, run the [two-terminal JSON Schema probe](docs/wiki/Experiment-001-JSON-vs-JSONL.md#live-json-schema-contract-probe). It sends one clean and one conflicting ADR to the active model and saves the validation result and findings for each request.
+
 Run these from the repo directory on the Mac, with the llama.cpp servers already available. Discover exact served model IDs before using them:
 
 ```sh
