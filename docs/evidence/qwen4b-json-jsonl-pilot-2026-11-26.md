@@ -95,8 +95,19 @@ Of 18 matched pairs, 12 had two valid replies. In that subset the median JSONL m
 
 The clean ADR reproduced `P1/C1` on all three repetitions in both arms. The clean code-boundary case added `P1/C1` and `P1/C2` in all three repetitions in both arms. `code-clean` had the extra `P1/C1` in all three JSONL repeats, and `adr-rollback-conflict` had an extra `P1/C2` in all three JSON repeats. Both arms had 12 false positives on accepted output. The three repetitions per case are not independent evidence across 18 different cases.
 
+## Local comparison smoke test
+
+The first comparison-procedure smoke on profile `qwen4b` (run `qwen4b.GCJeyF`) used one pass over six cases in both formats. The server started with the deprecated `--chat-template-kwargs` thinking switch. Exit status 1 reflected two rejected replies. All 12 trial rows and the summary were produced.
+
+| Format | Valid | Exact | TP | FP | FN |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| JSON | 4/6 | 1/6 | 3 | 4 | 2 |
+| JSONL | 6/6 | 3/6 | 5 | 4 | 0 |
+
+Among four jointly valid pairs, median JSONL minus JSON was +29.1 ms and +8.5 total tokens. The smoke run uses one repetition; its reported verdict was `PILOT_INCONCLUSIVE`. The measured comparison across models will use the runtime-supported `--reasoning off` flag on every profile.
+
 ## Remaining checks
 
 Keep JSONL with thinking disabled as a candidate profile for producing review suggestions. Preserve the repeatable clean-case false positives as regressions. Before extending its role, evaluate the profile on a larger set of independently labeled cases and assess how often a second reviewer confirms or rejects its findings. Measure end-to-end latency and tokens including any second review. Evaluate the findings-only schema separately.
 
-Sources are the developer's local pilot, diagnostic and negation reports and the paired retest report. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Sources are the developer's local pilot, diagnostic and negation reports the paired retest report, and the local comparison smoke summary. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
