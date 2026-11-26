@@ -173,8 +173,25 @@ Run `actor-qwen4b.k_0nro4s` used the same benchmark revision and a 1,024-token o
 
 The two responses together had one true positive, three false positives, zero false negatives, and zero exact matches. `C1` requires explicit approval, which both candidates include. All three profiles returned `P1/C2` for both candidates, so a second reviewer using either 27B or Gemma would retain the shared false positive on the compliant call. Those reviewers omitted the additional 4B false positive against `C1` on both candidates. This result covers one synthetic pair with one request per candidate and profile.
 
+## Measured local comparison
+
+The measured comparison uses three repetitions of the same six cases in both formats for each model profile. Results are reported as each 36-request profile completes.
+
+### Qwen 4B measured run
+
+Run `qwen4b.measured.b2XgGa` used the verified `qwen4b` alias, benchmark revision `38bc939a1c270667805bf42504c29096771a8048` and a 1,024-token output limit. The reported verdict was `PILOT_INCONCLUSIVE`. The harness completed with exit status 1 after recording six rejected JSON replies.
+
+| Format | Requests | Valid | Exact | TP | FP | FN |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| JSON | 18 | 12 | 3 | 9 | 12 | 6 |
+| JSONL | 18 | 18 | 9 | 15 | 12 | 0 |
+
+Six pairs were exact only in JSONL and zero were exact only in JSON. Among the 12 jointly valid pairs, the median JSONL-minus-JSON deltas were +36.5 ms, +7 prompt tokens, +2 completion tokens, and +8.5 total tokens. The aggregate validity and quality counts match the earlier thinking-disabled diagnostic. This measured run reproduces the strict-validation gain and the false-positive count. Timing and token deltas apply only to jointly valid replies. The paired protocol changes both input and output formats.
+
+The measured Qwen 27B and Gemma 31B results are pending.
+
 ## Remaining checks
 
 Keep JSONL with thinking disabled as a candidate profile for producing review suggestions. Preserve the repeatable clean-case false positives as regressions. Before extending its role, evaluate the profile on a larger set of independently labeled cases and assess how often a second reviewer confirms or rejects its findings. Measure end-to-end latency and tokens including any second review. Evaluate the findings-only schema separately.
 
-Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, and all three actor-probe reports. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, all three actor-probe reports, and the Qwen 4B measured-run summary. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
