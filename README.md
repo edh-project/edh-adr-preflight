@@ -142,6 +142,25 @@ The [developer evidence workflow](.github/workflows/adr-local-evidence.yml) veri
 
 The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/actions/runs/45484648754) completed successfully. Seven unit tests and three synthetic scenarios passed. This is evidence of deterministic fixture behavior, not live inference accuracy. The initial Qwen/Gemma evaluation covers synthetic inputs. Integrated agent execution and cloud delivery remain proposed.
 
+## Research experiments
+
+- [Experiment 001 — JSON vs JSONL for small local models](docs/wiki/Experiment-001-JSON-vs-JSONL.md): paired ADR/code pilot, reproducible fixture harness and opt-in live inference. Fixture results do not establish inference efficiency.
+
+- [Mid-December 2026 — Integration Test Intent](docs/wiki/Mid-December-2026-Integration-Test-Intent.md): proposed LangChain/LangGraph orchestration, runtime portability and controlled IDP integration tests, targeted for 8–10 December and mid-month review.
+
+- [Phase 0 — Organizational and Technical Discovery](docs/wiki/Phase-0-Organizational-and-Technical-Discovery.md): objectives, team-level capabilities, approved resources, current-state architecture and integration readiness; no organization-specific findings are published.
+
+- [Experiment 002 — External Execution Governance Provider](docs/wiki/Experiment-002-External-Execution-Governance-Provider.md): proposed optional provider interface, mock contract tests and public/private integration boundary; no provider dependency or commercial commitment.
+
+  - [Elaboration and decision gates](docs/wiki/Experiment-002-Elaboration-and-Decision-Gates.md), [team integration options](docs/wiki/Experiment-002-Team-Integration-Options.md), [success criteria and evidence](docs/wiki/Experiment-002-Success-Criteria-and-Evidence.md). Documentation only; implementation deferred pending elaboration and approval.
+
+- [Experiment 003 — Integrated Engineering and Knowledge Governance Framework](docs/wiki/Experiment-003-Integrated-Engineering-and-Knowledge-Governance.md): combined elaboration and readiness model; documentation only.
+
+  - [Track A — Engineering Alignment](docs/wiki/Experiment-003-A-SDLC-Organizational-Alignment.md): reuse-first discovery and evaluation.
+  - [Track B — Knowledge & IP Governance](docs/wiki/Experiment-003-Demonstration-and-Disclosure-Boundaries.md): public, optional NDA-only and internal information boundaries.
+
+  - [A-SDLC Research Portfolio](docs/wiki/A-SDLC-Research-Portfolio.md): living register of candidate research directions, value, priority and ownership; not an implementation roadmap.
+
 ## Integration roadmap (not implemented)
 
 - Connect changed-ADR PR structural reports to a bounded semantic review executor; support arbitrary ADR inputs in live inference.
