@@ -151,6 +151,30 @@ For each profile retain `trials.jsonl`, `comparison.json`, `summary.md`, the GGU
 
 **Evaluate the cascade after the independent runs.** Match results by case, repetition and format. Compare 4B alone with 27B alone and Gemma alone before applying a predeclared routing rule to the saved rows. Count 4B findings the second model confirms or rejects and violations the second model recovers on cases where 4B returned nothing. Report the second-stage call rate and summed latency and tokens. Treat failed or invalid responses as unresolved. The simulated cascade reuses independent results. Its estimates need a separate end-to-end run for any workflow that passes the first model's findings into the second model's prompt.
 
+## Deployment-rule regression and response contract
+
+The actor probe found a shared false positive on an approved pipeline call. The regression checks evaluate two independent facts: the verified deployment executor and whether required approval was verified. Pipeline and agent calls are tested with and without approval. An unknown executor or approval produces an unresolved result for that rule.
+
+Replay the measured logs from this checkout:
+
+```sh
+edh_runs="$HOME/WORK/_edh/edh-model-eval/runs"
+python3 review_validation.py replay \
+  "$edh_runs/qwen4b.measured.b2XgGa/results-r3/trials.jsonl" \
+  "$edh_runs/qwen27b.measured.dJBUVz/results-r3/trials.jsonl" \
+  "$edh_runs/gemma31b.measured.AGCWNS/results-r3/trials.jsonl"
+```
+
+Replay checks the case identifier and the exact record-set SHA-256 before suppressing findings contradicted by known facts on the approved synthetic pipeline call. It reports precision inputs and exact-match counts before and after, separately by model and format. Other cases and output validity retain their measured results. The pilot files supply the baseline and are opened read-only. A real CI integration requires a trusted source that resolves the execution identity and approval evidence.
+
+With one model loaded on loopback, run the response-contract probe from this checkout. Set the argument to the served alias, one of `qwen4b`, `qwen27b` or `gemma31b` for this pilot.
+
+```sh
+python3 review_validation.py probe qwen4b
+```
+
+The probe sends two requests through the same live review transport and findings validator used by preflight. It records validity, schema errors and the actual findings for a clean and a conflicting ADR. Exit status 1 means at least one response failed the contract probe. This is a schema compatibility measurement. The four-case deployment matrix is tested deterministically, and actual GitHub workflow identity and approvals need separate integration tests.
+
 ## Prespecified interpretation
 
 Fixture runs always report HARNESS_ONLY_NOT_MEASURED: the stub is given gold labels to test the pipeline, not model ability. Timing and token metrics are absent, not zero. A live run is inconclusive by default. With at least three repetitions and all paired outputs valid, a JSONL quality regression is flagged if exact matches decrease or FP/FN increase. Otherwise JSONL is marked promising (not proven) only if exact matches do not decrease, FP/FN do not increase, and median latency or total tokens improves on all measured pairs. No statistical significance or general superiority is claimed. The pilot must be repeated on a larger independent corpus before an adoption decision.
