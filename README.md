@@ -1,9 +1,12 @@
-# EDH ADR Preflight — architectural admission PoC
+# EDH ADR Preflight
 
-A standalone demonstration of architecture-to-execution governance for agentic software delivery. Deterministic ADR checks precede local LLM semantic review; a deterministic policy interprets the review, never granting runtime permissions. AWS/GCP are example delivery targets, not deployed infrastructure.
+**Catch incomplete architecture decisions before implementation.** When a developer opens a pull request that changes an architecture decision record (ADR), GitHub Actions checks it using the rules from the base revision and saves a report. In the example below, the check rejects an ADR with a missing rollback plan and placeholder acceptance criteria before calling a model. The failed check is the expected result.
 
+[See the example PR](https://github.com/edh-project/edh-adr-preflight/pull/1) · [See the check result](https://github.com/edh-project/edh-adr-preflight/actions/runs/45569140916)
 
-## Engineering Portfolio — start here
+The project also explores local model-assisted review. The adapter is implemented, and live evaluation is pending. Execution authorization is a separate decision. AWS and GCP are proposed delivery targets.
+
+## Engineering Portfolio
 
 **EDH — Agentic Software Delivery Research**  
 Architecture · Execution Governance · Engineering Evidence · Research Portfolio
