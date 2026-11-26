@@ -177,6 +177,14 @@ The two responses together had one true positive, three false positives, zero fa
 
 The local run completed 108 requests across three model profiles. Each profile used six labeled cases, three repetitions, and two formats. Each JSON/JSONL pair used the same model and a 1,024-token output limit. The benchmark revision was `38bc939a1c270667805bf42504c29096771a8048`.
 
+All three run directories recorded `llama-server` version `0.3.0`, build `10621`, commit `c1d0e7a00`, compiled with AppleClang `16.0.0.16000026` for Darwin arm64. The model file hashes below come from the per-run `model-sha256.txt` manifests.
+
+| Profile | GGUF SHA-256 |
+| --- | --- |
+| Qwen 4B | `b4c36a8e14a80c21bcab5a067ce342b2e70e28f60b4aa95ad12203fa17b87426` |
+| Qwen 27B | `176a6a3f034e9cdc447c10cd00329fc9b31002e6589b9295f2ad4f1eefe0f6ab` |
+| Gemma 31B | `00b5a7c497f0c8934033088c10a7fa9a4c015e46ee6d89e9c6890650ba5d0e71` |
+
 | Profile / GGUF | Run | Verdict | Exit |
 | --- | --- | --- | ---: |
 | Qwen 4B · `Qwen3.5-4B-UD-Q5_K_XL.gguf` | `qwen4b.measured.b2XgGa` | `PILOT_INCONCLUSIVE` | 1 |
@@ -192,7 +200,7 @@ The local run completed 108 requests across three model profiles. Each profile u
 | Gemma 31B | JSON | 18 | 0 | 0 | 0 | 0 | 15 |
 | Gemma 31B | JSONL | 18 | 18 | 15 | 15 | 3 | 0 |
 
-The scorer treats a rejected response as empty. For Gemma JSON, all 15 false negatives are assigned after output rejection. The earlier smoke and raw-response probe identified a format mismatch on the tested Gemma replies. Per-trial hashes from this measured run are needed to check whether that explanation holds for all 18 pairs.
+The scorer treats a rejected response as empty. For Gemma JSON, all 15 false negatives are assigned after output rejection. All 18 measured Gemma pairs had identical response SHA-256 hashes across JSON and JSONL. The format-specific validation of those identical responses accounts for the measured difference in validity and exact scores. The smoke and raw-response probe illustrate the mismatch: the JSON parser requires an array envelope, while the captured Gemma outputs were a single object or multiple newline-delimited objects.
 
 | Profile | Jointly valid pairs | Median latency delta | Median prompt token delta | Median completion token delta | Median total token delta | JSONL-only exact | JSON-only exact |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
