@@ -89,6 +89,68 @@ The Qwen 4B run kept the initial failed pilot, repeated a clean-ADR false positi
 2. To measure quantization, compare distinct quants of the same model release under the same runtime and settings. Treat the Qwen 4B, Qwen 27B and Gemma 31B runs as different model profiles. Report validity, exact matches, FP/FN, latency, tokens and any missing measurements per profile.
 3. Evaluate each potential second reviewer on the full labeled set, including cases where 4B returns no findings. Separately measure which 4B findings are confirmed or rejected, which missed findings are recovered, and the total latency and tokens if both stages run. Keep ADR approval outside this pilot.
 
+### Run the comparison on a local Mac
+
+Use a checkout of [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) and the existing GGUFs. Use one `llama-server` process at a time on loopback, on the same Mac and runtime build. Run every profile against the same benchmark revision and case set. Start with one repetition per profile (12 requests each). The measured run uses three repetitions (36 requests per profile, 108 across the three profiles). Report smoke runs separately.
+
+**Terminal 1. Start one model and record its provenance.** Select `qwen4b`, `qwen27b`, or `gemma31b`. The server remains in the foreground. Stop it with Ctrl-C before switching models.
+
+```sh
+edh_profile=qwen4b
+edh_model=
+case "$edh_profile" in
+  qwen4b) edh_model="$HOME/models/Qwen3.5-4B/Qwen3.5-4B-UD-Q5_K_XL.gguf" ;;
+  qwen27b) edh_model="$HOME/models/Qwen3.8-27B/Qwen3.8-27B-UD-Q5_K_XL.gguf" ;;
+  gemma31b) edh_model="$HOME/models/Gemma4-31B/gemma-4-31B-it-qat-UD-Q4_K_XL.gguf" ;;
+esac
+if [ -f "$edh_model" ] && command -v llama-server >/dev/null &&
+   mkdir -p "$HOME/WORK/_edh/edh-model-eval/runs" &&
+   edh_run_dir=$(mktemp -d "$HOME/WORK/_edh/edh-model-eval/runs/$edh_profile.XXXXXX") &&
+   shasum -a 256 "$edh_model" > "$edh_run_dir/model-sha256.txt" &&
+   llama-server --version > "$edh_run_dir/runtime.txt" 2>&1 &&
+   printf "%s\n" "$edh_profile" > "$edh_run_dir/model-alias.txt"; then
+  printf "Run directory: %s\n" "$edh_run_dir"
+  llama-server --model "$edh_model" --alias "$edh_profile" \
+    --host 127.0.0.1 --port 8092 --ctx-size 8192 --parallel 1 --n-gpu-layers 99 \
+    --reasoning-budget 256 --no-cache-prompt \
+    --chat-template-kwargs '{"enable_thinking":false}' 2>&1 | tee "$edh_run_dir/llama-server.log"
+else
+  printf '%s\n' 'Setup failed: check the GGUF, llama-server and report directory.' >&2
+fi
+```
+
+Keep this launch command with the report. Record any runtime or `LLAMA_ARG_*` overrides. The flag requests the same thinking setting on each profile. Smoke-check the effective template and whether the runtime still emits reasoning. Record differences as profile settings when templates behave differently. A shared flag value alone is insufficient to establish identical behavior.
+
+**Terminal 2. Run the benchmark from the root of the Experiment 001 checkout.** Copy the run directory printed by Terminal 1. Keep the smoke and measured outputs in separate directories.
+
+```sh
+edh_run_dir="/paste/the/run/directory/here"
+edh_repeats=1
+edh_result="$edh_run_dir/results-r$edh_repeats"
+if [ -r "$edh_run_dir/model-alias.txt" ] &&
+   [ -f benchmark_jsonl.py ] &&
+   [ ! -e "$edh_result" ] &&
+   edh_alias=$(cat "$edh_run_dir/model-alias.txt") &&
+   curl --noproxy '*' -fsS --max-time 5 http://127.0.0.1:8092/v1/models -o "$edh_run_dir/served-models.json" &&
+   python3 -c 'import json, sys; data=json.load(open(sys.argv[1])); sys.exit(not any(m["id"] == sys.argv[2] for m in data["data"]))' "$edh_run_dir/served-models.json" "$edh_alias" &&
+   mkdir "$edh_result" && git rev-parse HEAD > "$edh_result/benchmark-revision.txt"; then
+  env -u ADR_PRIMARY_API_KEY ADR_ENDPOINT_POLICY=loopback-only ADR_TIMEOUT_SECONDS=180 \
+    ADR_PRIMARY_URL=http://127.0.0.1:8092/v1 ADR_PRIMARY_MODEL="$edh_alias" \
+    python3 benchmark_jsonl.py --mode live --repeats "$edh_repeats" --max-tokens 1024 \
+      --output "$edh_result"
+  edh_status=$?
+  printf 'Benchmark exit status: %s\n' "$edh_status"
+else
+  printf '%s\n' 'Setup failed: check the run directory, served alias and output path.' >&2
+fi
+```
+
+Use `edh_repeats=3` for the measured run. Exit status 1 with `comparison.json` can indicate rejected responses. Retain and report those rows. If a run cannot write the comparison, preserve the partial log and use a fresh directory for the retry.
+
+For each profile retain `trials.jsonl`, `comparison.json`, `summary.md`, the GGUF SHA-256, server version, served model, benchmark revision and launch settings. Compare output validity and semantic accuracy separately. Include model load time separately from request latency when estimating local workflow cost. A measured profile may use a different chat template or quant, so label the comparison accordingly.
+
+**Evaluate the cascade after the independent runs.** Match results by case, repetition and format. Compare 4B alone with 27B alone and Gemma alone before applying a predeclared routing rule to the saved rows. Count 4B findings the second model confirms or rejects and violations the second model recovers on cases where 4B returned nothing. Report the second-stage call rate and summed latency and tokens. Treat failed or invalid responses as unresolved. The simulated cascade reuses independent results. Its estimates need a separate end-to-end run for any workflow that passes the first model's findings into the second model's prompt.
+
 ## Prespecified interpretation
 
 Fixture runs always report HARNESS_ONLY_NOT_MEASURED: the stub is given gold labels to test the pipeline, not model ability. Timing and token metrics are absent, not zero. A live run is inconclusive by default. With at least three repetitions and all paired outputs valid, a JSONL quality regression is flagged if exact matches decrease or FP/FN increase. Otherwise JSONL is marked promising (not proven) only if exact matches do not decrease, FP/FN do not increase, and median latency or total tokens improves on all measured pairs. No statistical significance or general superiority is claimed. The pilot must be repeated on a larger independent corpus before an adoption decision.
