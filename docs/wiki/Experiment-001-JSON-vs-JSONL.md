@@ -167,6 +167,21 @@ python3 review_validation.py replay \
 
 Replay checks the case identifier and the exact record-set SHA-256 before suppressing findings contradicted by known facts on the approved synthetic pipeline call. It reports precision inputs and exact-match counts before and after, separately by model and format. Other cases and output validity retain their measured results. The pilot files supply the baseline and are opened read-only. A real CI integration requires a trusted source that resolves the execution identity and approval evidence.
 
+### Replay results on all 108 saved requests
+
+| Model | Format | Valid | FP before → after | Exact before → after | TP / FN retained |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Qwen 4B | JSON | 12/18 | 12 → 6 | 3 → 6 | 9 / 6 |
+| Qwen 4B | JSONL | 18/18 | 12 → 6 | 9 → 12 | 15 / 0 |
+| Qwen 27B | JSON | 18/18 | 3 → 0 | 15 → 18 | 15 / 0 |
+| Qwen 27B | JSONL | 18/18 | 3 → 0 | 15 → 18 | 15 / 0 |
+| Gemma 31B | JSON | 0/18 | 0 → 0 | 0 → 0 | 0 / 15 |
+| Gemma 31B | JSONL | 18/18 | 3 → 0 | 15 → 18 | 15 / 0 |
+
+Replay changed three responses per affected model and format. At each appearance of the approved synthetic call, it removed the findings contradicted by the verified facts. All true-positive and false-negative counts were retained. The scope is the original pinned fixture; coverage on unseen cases and trusted real-workflow identity and approval evidence remain open. Gemma JSON responses still fail the benchmark's strict format check.
+
+### Live JSON Schema contract probe
+
 With one model loaded on loopback, run the response-contract probe from this checkout. Set the argument to the served alias, one of `qwen4b`, `qwen27b` or `gemma31b` for this pilot.
 
 ```sh
