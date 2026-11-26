@@ -106,6 +106,17 @@ The first comparison-procedure smoke on profile `qwen4b` (run `qwen4b.GCJeyF`) u
 
 Among four jointly valid pairs, median JSONL minus JSON was +29.1 ms and +8.5 total tokens. The smoke run uses one repetition; its reported verdict was `PILOT_INCONCLUSIVE`. The measured comparison across models will use the runtime-supported `--reasoning off` flag on every profile.
 
+### Qwen 27B smoke test
+
+Run `qwen27b.elD9WS` completed one repetition of the same six labeled cases per format using the local comparison procedure. The server was launched with `--reasoning off`.
+
+| Format | Valid | Exact | TP | FP | FN |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| JSON | 6/6 | 5/6 | 5 | 1 | 0 |
+| JSONL | 6/6 | 5/6 | 5 | 1 | 0 |
+
+All six pairs had two valid responses. The paired median JSONL minus JSON was +109.4 ms and +7.5 total tokens. Neither format had an exclusive exact match. The aggregates do not identify whether the two false positives were the same finding. This one-repetition smoke remains descriptive; the benchmark reported `PILOT_INCONCLUSIVE`.
+
 ## Remaining checks
 
 Keep JSONL with thinking disabled as a candidate profile for producing review suggestions. Preserve the repeatable clean-case false positives as regressions. Before extending its role, evaluate the profile on a larger set of independently labeled cases and assess how often a second reviewer confirms or rejects its findings. Measure end-to-end latency and tokens including any second review. Evaluate the findings-only schema separately.
