@@ -20,11 +20,11 @@ Each pair used the same model, case and decoding configuration. The JSON/JSONL s
 
 ## Observed outcomes
 
-| Format | Requests | Valid | Exact | `length` + `ValueError` | `stop` + `JSONDecodeError` |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| JSON | 18 | 3 | 3 | 9 | 6 |
-| JSONL | 18 | 0 | 0 | 6 | 12 |
-| Total | 36 | 3 | 3 | 15 | 18 |
+| Format | Requests | Valid | Exact | TP | FP | FN | `length` + `ValueError` | `stop` + `JSONDecodeError` |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| JSON | 18 | 3 | 3 | 6 | 0 | 9 | 9 | 6 |
+| JSONL | 18 | 0 | 0 | 0 | 0 | 15 | 6 | 12 |
+| Total | 36 | 3 | 3 | 6 | 0 | 24 | 15 | 18 |
 
 - **15 responses reached the output limit.** The benchmark rejects incomplete responses before parsing.
 - **18 responses reported `stop` and failed JSON decoding.** The failure class is observed. The exact output patterns remain unverified.
