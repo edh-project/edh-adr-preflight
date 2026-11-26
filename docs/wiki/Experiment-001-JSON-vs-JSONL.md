@@ -1,8 +1,8 @@
 # Experiment 001 — JSON vs JSONL for small local models
 
-**Status:** fixture CI passed; live-model hypothesis remains unverified. This is a research protocol and implementation checkpoint, not an inference result.
+**Status:** fixture CI passed and one local small-model pilot and follow-up retest are recorded. See the [live evidence](../evidence/qwen4b-json-jsonl-pilot-2026-11-26.md). Broader replication and profile acceptance remain open.
 
-## Current state — 2026-11-25
+## Fixture checkpoint — 2026-11-25
 
 The benchmark implementation is in [draft PR #2](https://github.com/edh-project/edh-adr-preflight/pull/2), with the original experiment commit [2c7d926](https://github.com/edh-project/edh-adr-preflight/commit/2c7d926be487bcbd4fe16c7afae32015981832e4). The main branch remains unchanged by this experiment.
 
@@ -17,13 +17,13 @@ The benchmark implementation is in [draft PR #2](https://github.com/edh-project/
 | Live inference | Skipped intentionally on PR; zero measured model requests in this CI run |
 | Verdict | HARNESS_ONLY_NOT_MEASURED |
 
-The successful run confirms harness execution, not model performance. There is no measured latency or token advantage, and neither format has demonstrated superiority. The benchmark is separate from the admission policy; it never authorizes execution.
+The hosted fixture run verified harness execution. Live findings are recorded separately. The benchmark has no execution authorization.
 
 ## Next steps and acceptance gates
 
-- [ ] **P0 — Local execution:** check out PR #2 on a trusted workstation; verify the served model ID and endpoint with /v1/models. Choose a small model (initial candidate: Qwen 4B, exact build and quantization to be recorded). Record hardware, server version, context length, inference settings and cache/warm-up state. Do not attach a personal runner to the public repository.
-- [ ] **P0 — First measured pair:** execute three repetitions for one model (36 actual requests), using identical settings in both arms. Preserve trials.jsonl, comparison.json and summary.md, including errors, invalid outputs and unavailable token counts. Check that all 18 pairs are represented; do not substitute fixture results for live trials.
-- [ ] **P0 — Review evidence:** compare exact matches, valid responses, TP/FP/FN, precision/recall and paired latency/token deltas; examine invalid or truncated outputs and verify findings against the labeled records. Apply the prespecified verdict without changing the rule after viewing results. Document run configuration and limitations.
+- [x] **P0 — Local execution:** check out PR #2 on a trusted workstation; verify the served model ID and endpoint with /v1/models. Choose a small model (initial candidate: Qwen 4B, exact build and quantization to be recorded). Record hardware, server version, context length, inference settings and cache/warm-up state. Do not attach a personal runner to the public repository.
+- [x] **P0 — First measured pair:** execute three repetitions for one model (36 actual requests), using identical settings in both arms. Preserve trials.jsonl, comparison.json and summary.md, including errors, invalid outputs and unavailable token counts. Check that all 18 pairs are represented; do not substitute fixture results for live trials.
+- [x] **P0 — Review evidence:** compare exact matches, valid responses, TP/FP/FN, precision/recall and paired latency/token deltas; examine invalid or truncated outputs and verify findings against the labeled records. Apply the prespecified verdict without changing the rule after viewing results. Document run configuration and limitations.
 - [ ] **P1 — Replicate:** repeat on a second small model, with its own endpoint, model ID, output directory and report. Do not pool model results. Optionally use a larger model as a reference, clearly labeled as such.
 - [ ] **P1 — PR review and hosted reproducibility:** review tests and security boundaries, then merge only when approved. The manually dispatched live GitHub Action is intentionally main-only; until merge, use the local CLI from the experiment branch. Hosted execution requires a reachable HTTPS inference service configured by the operator, not workstation localhost.
 - [ ] **P2 — Isolate the effect:** add a 2×2 ablation (JSON/JSONL input crossed with JSON/JSONL output), a schema-constrained JSON baseline, and a larger independently labeled held-out ADR/code corpus. Keep sample selection and evaluation rules fixed before runs.
@@ -62,6 +62,20 @@ The six synthetic cases cover clean and conflicting ADR decisions and tiny code 
 4. Compare exact case match, schema/reference/completion validity, TP/FP/FN, precision and recall; compare paired median latency and provider-reported token deltas only where both outputs are valid and metrics exist. Record bytes and hashes as diagnostic evidence, not substitute token counts.
 5. Missing completion, unknown IDs, duplicate findings or non-stop finish invalidate the response. Invalid trials cannot count as exact matches; gold violations are counted as missed. No automatic admission is possible.
 
+## Initial evaluation approach
+
+This is one evaluation approach trialed with Qwen 4B in Experiment 001. It turns observed failures into repeatable tests and records the conditions under which a model profile may be reused.
+
+| Step | Record for reuse |
+| --- | --- |
+| Establish a baseline | Pin the evaluation code and labeled cases. Record the GGUF hash and quant, served alias, runtime build, chat template, prompt, response schema, decoding settings and cache state. Preserve each attempt and its outcome. |
+| Diagnose failures | Record transport errors, truncation, output validation and semantic findings separately. Inspect saved responses on a small synthetic subset before repeating the full suite. |
+| Add a regression | Preserve the original failure with the expected result. Add a matched compliant/violating case, then vary one setting at a time while holding the other settings fixed. |
+| Retest and compare | Report valid and exact responses, FP and FN, and the denominator for every timing or token comparison. Use the same cases across the compared profiles. Validate on independently labeled cases before extending the profile's scope. |
+| Record the workflow decision | Link the accepted or candidate profile to its evidence, intended role, known regressions and escalation rule. Check outcome quality and end-to-end cost before assigning the profile authority. |
+
+The Qwen 4B run kept the initial failed pilot, repeated a clean-ADR false positive across output configurations, and compared a clarification of the prompt against matched wording. The subsequent thinking-disabled retest found better output validation with JSONL in that setup. Both formats still produced false positives. The observed configuration remains a first-pass review candidate with independent verification. [Live evidence and known regressions](../evidence/qwen4b-json-jsonl-pilot-2026-11-26.md)
+
 ## Prespecified interpretation
 
 Fixture runs always report HARNESS_ONLY_NOT_MEASURED: the stub is given gold labels to test the pipeline, not model ability. Timing and token metrics are absent, not zero. A live run is inconclusive by default. With at least three repetitions and all paired outputs valid, a JSONL quality regression is flagged if exact matches decrease or FP/FN increase. Otherwise JSONL is marked promising (not proven) only if exact matches do not decrease, FP/FN do not increase, and median latency or total tokens improves on all measured pairs. No statistical significance or general superiority is claimed. The pilot must be repeated on a larger independent corpus before an adoption decision.
@@ -89,4 +103,4 @@ Use any configured loopback address and port (including 8081 for a second model)
 - comparison.json: aggregate quality, paired resource deltas, dataset/benchmark hashes, descriptive verdict.
 - summary.md: human-readable comparison and explicit limitations.
 
-Results describe a format experiment, not architectural approval. Next steps: actual small-model measurements, 2×2 input/output ablation, larger held-out corpus, streaming and constrained-decoding study.
+Remaining work includes replication, 2×2 input/output ablation, a larger held-out corpus, streaming and constrained decoding. ADR approval remains a separate workflow decision.
