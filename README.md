@@ -4,7 +4,7 @@
 
 [See the example PR](https://github.com/edh-project/edh-adr-preflight/pull/1) · [See the check result](https://github.com/edh-project/edh-adr-preflight/actions/runs/45569140916)
 
-The project also explores local model-assisted review. The adapter is implemented, and live evaluation is pending. Execution authorization is a separate decision. AWS and GCP are proposed delivery targets.
+The project also explores local model-assisted review. See the [initial local evaluation and proposed adapter fix](https://github.com/edh-project/edh-adr-preflight/pull/5). Execution authorization is a separate decision. AWS and GCP are proposed delivery targets.
 
 ## Engineering Portfolio
 
@@ -24,7 +24,7 @@ Architecture · Execution Governance · Engineering Evidence · Research Portfol
 | Capability | Readiness / evidence |
 |---|---|
 | Deterministic ADR preflight | Implemented; [fixture CI passed](https://github.com/edh-project/edh-adr-preflight/actions/runs/45622863474) |
-| Model-assisted review (BYOI) | Configurable adapter implemented; live inference evaluation pending |
+| Model-assisted review (BYOI) | Configurable adapter implemented; [local matched-pair evaluation and proposed fix](https://github.com/edh-project/edh-adr-preflight/pull/5) |
 | Governed MCP execution (R08) | [Standalone synthetic PoC](https://github.com/edh-project/edh-mcp); [13-test acceptance CI passed](https://github.com/edh-project/edh-mcp/actions/runs/45615956732) |
 | Execution specification | Human-authored draft example; general contract generation and integrated handoff pending |
 | Cross-component verification and evidence | Proposed end-to-end acceptance case; component evidence is not an integrated acceptance result |
@@ -64,7 +64,7 @@ flowchart TD
   B -.-> D[CI/CD to AWS or GCP: future]
 ```
 
-See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI and the manually dispatched BYOI (Bring Your Own Inference) workflow. A separate private-only runner template is documentation only. Live model validation has not yet been performed.
+See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI and the manually dispatched BYOI (Bring Your Own Inference) workflow. A separate private-only runner template is documentation only. The initial matched-pair evaluation uses synthetic inputs.
 
 ## Quick demo (Python 3.10+, no packages)
 
@@ -135,7 +135,7 @@ For a private-network endpoint use the local CLI or a separately isolated privat
 
 ## Validation status
 
-The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/actions/runs/45484648754) completed successfully. Seven unit tests and three synthetic scenarios passed. This is evidence of deterministic fixture behavior, not live inference accuracy. Live Qwen/Gemma runs, agent execution and cloud deployments remain unverified or out of scope.
+The [initial fixture CI run](https://github.com/edh-project/edh-adr-preflight/actions/runs/45484648754) completed successfully. Seven unit tests and three synthetic scenarios passed. This is evidence of deterministic fixture behavior, not live inference accuracy. The initial Qwen/Gemma evaluation covers synthetic inputs. Integrated agent execution and cloud delivery remain proposed.
 
 ## Integration roadmap (not implemented)
 
