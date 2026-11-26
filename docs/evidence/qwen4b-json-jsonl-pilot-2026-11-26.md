@@ -175,23 +175,35 @@ The two responses together had one true positive, three false positives, zero fa
 
 ## Measured local comparison
 
-The measured comparison uses three repetitions of the same six cases in both formats for each model profile. Results are reported as each 36-request profile completes.
+The local run completed 108 requests across three model profiles. Each profile used six labeled cases, three repetitions, and two formats. Each JSON/JSONL pair used the same model and a 1,024-token output limit. The benchmark revision was `38bc939a1c270667805bf42504c29096771a8048`.
 
-### Qwen 4B measured run
+| Profile / GGUF | Run | Verdict | Exit |
+| --- | --- | --- | ---: |
+| Qwen 4B · `Qwen3.5-4B-UD-Q5_K_XL.gguf` | `qwen4b.measured.b2XgGa` | `PILOT_INCONCLUSIVE` | 1 |
+| Qwen 27B · `Qwen3.8-27B-UD-Q5_K_XL.gguf` | `qwen27b.measured.dJBUVz` | `PILOT_INCONCLUSIVE` | 0 |
+| Gemma 31B · `gemma-4-31B-it-qat-UD-Q4_K_XL.gguf` | `gemma31b.measured.AGCWNS` | `PILOT_INCONCLUSIVE` | 1 |
 
-Run `qwen4b.measured.b2XgGa` used the verified `qwen4b` alias, benchmark revision `38bc939a1c270667805bf42504c29096771a8048` and a 1,024-token output limit. The reported verdict was `PILOT_INCONCLUSIVE`. The harness completed with exit status 1 after recording six rejected JSON replies.
+| Profile | Format | Requests | Valid | Exact | TP | FP | FN |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen 4B | JSON | 18 | 12 | 3 | 9 | 12 | 6 |
+| Qwen 4B | JSONL | 18 | 18 | 9 | 15 | 12 | 0 |
+| Qwen 27B | JSON | 18 | 18 | 15 | 15 | 3 | 0 |
+| Qwen 27B | JSONL | 18 | 18 | 15 | 15 | 3 | 0 |
+| Gemma 31B | JSON | 18 | 0 | 0 | 0 | 0 | 15 |
+| Gemma 31B | JSONL | 18 | 18 | 15 | 15 | 3 | 0 |
 
-| Format | Requests | Valid | Exact | TP | FP | FN |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| JSON | 18 | 12 | 3 | 9 | 12 | 6 |
-| JSONL | 18 | 18 | 9 | 15 | 12 | 0 |
+The scorer treats a rejected response as empty. For Gemma JSON, all 15 false negatives are assigned after output rejection. The earlier smoke and raw-response probe identified a format mismatch on the tested Gemma replies. Per-trial hashes from this measured run are needed to check whether that explanation holds for all 18 pairs.
 
-Six pairs were exact only in JSONL and zero were exact only in JSON. Among the 12 jointly valid pairs, the median JSONL-minus-JSON deltas were +36.5 ms, +7 prompt tokens, +2 completion tokens, and +8.5 total tokens. The aggregate validity and quality counts match the earlier thinking-disabled diagnostic. This measured run reproduces the strict-validation gain and the false-positive count. Timing and token deltas apply only to jointly valid replies. The paired protocol changes both input and output formats.
+| Profile | Jointly valid pairs | Median latency delta | Median prompt token delta | Median completion token delta | Median total token delta | JSONL-only exact | JSON-only exact |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Qwen 4B | 12/18 | +36.5 ms | +7 | +2 | +8.5 | 6 | 0 |
+| Qwen 27B | 18/18 | +132.2 ms | +6.5 | +1 | +7.5 | 0 | 0 |
+| Gemma 31B | 0/18 | N/A | N/A | N/A | N/A | 15 | 0 |
 
-The measured Qwen 27B and Gemma 31B results are pending.
+Deltas are JSONL minus JSON on jointly valid pairs. JSONL achieved full strict validation in all three profiles. Qwen 27B achieved the same validity and quality counts in both formats, with no exclusive exact matches. In the two profiles with comparable valid replies, the median JSONL reply used more tokens and took longer. Each pair changes both input and output encoding. Repetitions reuse the six cases, and the measured summaries alone do not establish per-case agreement or the effect of a reviewer cascade.
 
 ## Remaining checks
 
 Keep JSONL with thinking disabled as a candidate profile for producing review suggestions. Preserve the repeatable clean-case false positives as regressions. Before extending its role, evaluate the profile on a larger set of independently labeled cases and assess how often a second reviewer confirms or rejects its findings. Measure end-to-end latency and tokens including any second review. Evaluate the findings-only schema separately.
 
-Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, all three actor-probe reports, and the Qwen 4B measured-run summary. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, all three actor-probe reports, and the three measured-run summaries. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
