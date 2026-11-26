@@ -182,13 +182,57 @@ Replay changed three responses per affected model and format. At each appearance
 
 ### Live JSON Schema contract probe
 
-With one model loaded on loopback, run the response-contract probe from this checkout. Set the argument to the served alias, one of `qwen4b`, `qwen27b` or `gemma31b` for this pilot.
+This separate check uses the existing live preflight request and findings validator against one model at a time. Every model reviews the same two proposed ADRs against the accepted baseline:
+
+| Request | Scenario | What to look for |
+| --- | --- | --- |
+| `clean` (`ADR-0002`) | The agent returns a patch. The pipeline can deploy after human approval. | No spurious deployment or credential conflict. |
+| `conflict` (`ADR-0003`) | The agent receives production credentials and can deploy directly without human approval. | Findings should identify those conflicts and quote relevant evidence. |
+
+Each run is **two inference requests for one model**. Testing all three models once is **six requests**. The probe uses the existing findings-only JSON Schema for every request.
+
+**Terminal 1 — serve one model.** If Gemma already listens on `127.0.0.1:8092` with the same settings, proceed to Terminal 2. Otherwise stop any active server on that port with Ctrl+C in its terminal, paste this block, and wait for `listening`.
 
 ```sh
-python3 review_validation.py probe qwen4b
+edh_serve() {
+  local edh_alias="$1" edh_gguf
+  case "$edh_alias" in
+    gemma31b) edh_gguf="$HOME/models/Gemma4-31B/gemma-4-31B-it-qat-UD-Q4_K_XL.gguf" ;;
+    qwen27b) edh_gguf="$HOME/models/Qwen3.8-27B/Qwen3.8-27B-UD-Q5_K_XL.gguf" ;;
+    qwen4b) edh_gguf="$HOME/models/Qwen3.5-4B/Qwen3.5-4B-UD-Q5_K_XL.gguf" ;;
+    *) printf 'Unknown model: %s\n' "$edh_alias" >&2; return ;;
+  esac
+  llama-server --model "$edh_gguf" --alias "$edh_alias" \
+    --host 127.0.0.1 --port 8092 --ctx-size 8192 --parallel 1 \
+    --n-gpu-layers 99 --reasoning off --no-cache-prompt
+}
+edh_serve gemma31b
 ```
 
-The probe sends two requests through the same live review transport and findings validator used by preflight. It records validity, schema errors and the actual findings for a clean and a conflicting ADR. Exit status 1 means at least one response failed the contract probe. This is a schema compatibility measurement. The four-case deployment matrix is tested deterministically, and actual GitHub workflow identity and approvals need separate integration tests.
+**Terminal 2 — check the active model.** These commands assume the PR #8 checkout used for replay is at `~/WORK/_edh/edh-deployment-review`. Paste this block once. It prints a JSON report and gives each run a fresh output directory.
+
+```sh
+edh_check_schema() {
+  local edh_root="$HOME/WORK/_edh/edh-model-eval/schema-probes"
+  local edh_out edh_status=0
+  if mkdir -p "$edh_root" && edh_out=$(mktemp -d "$edh_root/$1.XXXXXX"); then
+    python3 "$HOME/WORK/_edh/edh-deployment-review/review_validation.py" probe "$1" \
+      > "$edh_out/probe.json" || edh_status=$?
+    cat "$edh_out/probe.json"
+    printf '\nExit status: %s\nReport: %s\n' "$edh_status" "$edh_out/probe.json"
+  fi
+}
+edh_check_schema gemma31b
+```
+
+When the probe finishes, return to Terminal 1. Press Ctrl+C and run the next `edh_serve` command. Wait for `listening`, then run the matching command in Terminal 2.
+
+| Terminal 1 | Terminal 2 |
+| --- | --- |
+| `edh_serve qwen27b` | `edh_check_schema qwen27b` |
+| `edh_serve qwen4b` | `edh_check_schema qwen4b` |
+
+Read the two rows in `probe.json`. A row with `valid: true` passed the live response contract, including quote validation. Check `findings` independently: a valid empty array on the conflicting ADR is a missed conflict. The probe exits with status 0 when both rows pass validation and 1 when at least one fails. A setup error exits with status 2.
 
 ## Prespecified interpretation
 
