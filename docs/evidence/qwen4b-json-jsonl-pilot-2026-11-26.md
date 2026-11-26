@@ -63,6 +63,8 @@ Both responses passed the structural checks. On the clean ADR, the model incorre
 
 ## Next diagnostic
 
-Use the original follow-up trial log to locate the plain-format false positives. Test a separately labeled prompt variant that directs the reviewer to distinguish an explicit prohibition from a candidate that explicitly complies with it. Include compliant and violating paraphrases and preserve the original results. Run the 36-request paired test with thinking disabled for the plain JSON versus JSONL comparison. Evaluate the findings-only schema separately.
+Inspection of the original follow-up trial log confirmed that both thinking-disabled plain outputs (JSON and JSONL) flagged the same extra `P1/C1` pair on the clean ADR, with no missed pairs. Together with the findings-only schema run, this reproduces the same semantic false positive across three structurally valid output configurations.
+
+The [negation probe](../../scripts/qwen4b_negation_probe.py) compares the original findings-only prompt and a polarity clarification on three matched compliant/violating pairs, for 12 requests. Each pair changes only candidate `P1` within the original ADR fixture. It reports structurally valid replies, exact matches, extra and missed findings, and pairs correct on both sides. This tests whether the clarification helps with the observed error. It does not compare JSON with JSONL. A separate 36-request paired test with thinking disabled remains the format comparison.
 
 Sources are the developer's local `pilot/report.md`, counts derived from `pilot/trials.jsonl`, and both follow-up reports. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
