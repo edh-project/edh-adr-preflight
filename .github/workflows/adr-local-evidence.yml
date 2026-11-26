@@ -1,0 +1,32 @@
+name: ADR preflight - developer evidence
+on:
+  workflow_dispatch:
+    inputs:
+      evidence:
+        description: Sanitized evidence.json from a developer run on public synthetic ADRs
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify report fields and source hashes
+        env:
+          ADR_LOCAL_EVIDENCE: ${{ inputs.evidence }}
+        run: python3 local_evidence.py --output reports/developer-evidence
+      - name: Write the job summary
+        run: cat reports/developer-evidence/summary.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: developer-adr-evidence
+          path: reports/developer-evidence/
+          if-no-files-found: error
