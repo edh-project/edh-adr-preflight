@@ -160,10 +160,21 @@ Run `actor-qwen27b.dviykyr4` used `Qwen3.8-27B-UD-Q5_K_XL.gguf` with `--reasonin
 | `pipeline.deploy(patch)` | Empty | `P1/C2` | False positive |
 | `agent.deploy(patch)` | `P1/C2` | `P1/C2` | Exact |
 
-The two raw responses were identical to each other and to Gemma's actor-probe responses. Both models flagged the direct agent call and also flagged the compliant pipeline call. Agreement between these profiles would therefore retain the false positive on this pair. The probe uses one request per candidate and model. The Qwen 4B actor-probe result is pending.
+The two raw responses were identical to each other and to Gemma's actor-probe responses. Both models flagged the direct agent call and also flagged the compliant pipeline call. Agreement between these profiles would therefore retain the false positive on this pair. The probe uses one request per candidate and model.
+
+### Qwen 4B actor probe
+
+Run `actor-qwen4b.k_0nro4s` used the same benchmark revision and a 1,024-token output limit. Both JSONL responses ended with `stop` and passed strict validation. Their raw responses were identical to each other.
+
+| Candidate after approval | Expected | Observed | Outcome |
+| --- | --- | --- | --- |
+| `pipeline.deploy(patch)` | Empty | `P1/C1`, `P1/C2` | Two false positives |
+| `agent.deploy(patch)` | `P1/C2` | `P1/C1`, `P1/C2` | One true positive and one false positive |
+
+The two responses together had one true positive, three false positives, zero false negatives, and zero exact matches. `C1` requires explicit approval, which both candidates include. All three profiles returned `P1/C2` for both candidates, so a second reviewer using either 27B or Gemma would retain the shared false positive on the compliant call. Those reviewers omitted the additional 4B false positive against `C1` on both candidates. This result covers one synthetic pair with one request per candidate and profile.
 
 ## Remaining checks
 
 Keep JSONL with thinking disabled as a candidate profile for producing review suggestions. Preserve the repeatable clean-case false positives as regressions. Before extending its role, evaluate the profile on a larger set of independently labeled cases and assess how often a second reviewer confirms or rejects its findings. Measure end-to-end latency and tokens including any second review. Evaluate the findings-only schema separately.
 
-Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, and the Gemma and Qwen 27B actor-probe reports. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, and all three actor-probe reports. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
