@@ -31,8 +31,26 @@ Each pair used the same model, case and decoding configuration. The JSON/JSONL s
 - **All three valid JSON responses matched the labels exactly.** The JSON arm returned six correct findings. The benchmark scores rejected outputs as empty, so the recorded false negatives include findings lost at the response boundary.
 - **Zero of 18 pairs had two valid responses.** The paired latency and token deltas are unavailable by the benchmark's predeclared rule.
 
+## Follow-up diagnostic
+
+Run `20261126T131710Z-iqpl1f1b` used the same GGUF, benchmark revision and 1,024-token output limit. One clean ADR and one ADR with two labeled conflicts were tested under three conditions.
+
+| Condition | Format | Valid | Exact | FP | FN | Length | Rejected after `stop` | Thinking observed |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Baseline | JSON | 0/2 | 0/2 | 0 | 2 | 1 | 1 | 2/2 |
+| Baseline | JSONL | 0/2 | 0/2 | 0 | 2 | 1 | 1 | 2/2 |
+| Thinking disabled | JSON | 2/2 | 1/2 | 1 | 0 | 0 | 0 | 0/2 |
+| Thinking disabled | JSONL | 2/2 | 1/2 | 1 | 0 | 0 | 0 | 0/2 |
+| Thinking disabled with `records` JSON schema | JSON | 0/2 | 0/2 | 0 | 2 | 0 | 2 | 0/2 |
+
+The two baseline responses that finished with `stop` began with a literal `</think>` in the final content. With thinking disabled, all four plain-format responses passed validation at the same token limit. Each format still produced one false positive. The report gives per-arm totals, and the exact false-positive case and references require the per-request data.
+
+The `records` schema produced JSON syntax accepted by the JSON decoder. In the conflict example, the model emitted two `complete` records and no findings. The schema allowed each array item independently. The existing validator caught the invalid sequence. This exposes a missing cross-record constraint in the schema contract.
+
+The two jointly valid plain-output pairs yielded median JSONL minus JSON deltas of +55.3 ms and +9 tokens. The sample establishes that the two formats can be compared in this configuration. A larger paired run is needed for a format decision.
+
 ## Next diagnostic
 
-Keep this result as the baseline. Capture a small sample of `message.content`, finish reason and usage for both formats on the same labeled cases. Inspect the `stop` responses before changing the output contract. Test a larger generation budget as a separate condition with the budget held equal across both formats. Repeat all 36 requests once the short diagnostic establishes a viable configuration.
+Test a schema with a single `findings` array containing only evidence and constraint references. The client requires `finish_reason: stop`, validates the JSON envelope, and enforces reference and duplicate checks. Derive the completion count in the client. Use the same labeled cases to test for missed and extra findings. Inspect the false-positive pairs from the recorded diagnostic before adjusting the prompt. Run the 36-request paired test with thinking disabled to evaluate the two plain formats on all six cases.
 
-Source for this record is the developer's local `pilot/report.md` and terminal counts derived from `pilot/trials.jsonl`. The original per-request files remain with the local run. This note records the aggregate evidence. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Source for this record is the developer's local `pilot/report.md`, terminal counts derived from `pilot/trials.jsonl`, and the follow-up `report.md`. The original per-request files remain with the local runs. This note records aggregate evidence. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
