@@ -115,7 +115,7 @@ Run `qwen27b.elD9WS` completed one repetition of the same six labeled cases per 
 | JSON | 6/6 | 5/6 | 5 | 1 | 0 |
 | JSONL | 6/6 | 5/6 | 5 | 1 | 0 |
 
-All six pairs had two valid responses. The paired median JSONL minus JSON was +109.4 ms and +7.5 total tokens. Neither format had an exclusive exact match. The aggregates do not identify whether the two false positives were the same finding. This one-repetition smoke remains descriptive; the benchmark reported `PILOT_INCONCLUSIVE`.
+All six pairs had two valid responses. The paired median JSONL minus JSON was +109.4 ms and +7.5 total tokens. Neither format had an exclusive exact match. Per-trial inspection below confirmed the same false positive in both formats. This one-repetition smoke remains descriptive; the benchmark reported `PILOT_INCONCLUSIVE`.
 
 ### Gemma 31B smoke test
 
@@ -129,6 +129,14 @@ Run `gemma31b.ncqyuO` completed one repetition on the same six labeled cases in 
 All six JSON responses failed validation. The scoring rule treats a rejected response as empty, so JSON's zero false positives and five false negatives describe the scoring fallback. The aggregate does not reveal what the rejected responses contained or why each failed. With zero jointly valid pairs, paired latency and token deltas are unavailable. The benchmark reported `PILOT_INCONCLUSIVE`.
 
 All three local smoke runs accepted 6/6 JSONL replies. JSON validity varied by profile in these runs (Qwen 4B 4/6, Qwen 27B 6/6, Gemma 31B 0/6). The earlier Qwen 4B smoke used the deprecated thinking flag. Repeat the measured comparison with the same launch procedure across profiles.
+
+### Cross-model review of individual trials
+
+All three models returned the same false positive, `P1/C2`, on the clean `code-clean-boundary` case in JSONL. `P1` calls `pipeline.deploy(patch)` only when `approved is True`. `C2` prohibits the agent from calling deploy directly. The corpus has a second record, `P2`, in which the agent only generates the patch. The labeled result is empty. Qwen 27B also returned this pair in JSON, so its two smoke false positives were the same finding. Both valid Qwen 4B formats additionally flagged `P1/C1` on this case.
+
+Gemma's six rejected JSON trials all returned `finish_reason=stop`. Four failed JSON decoding (`adr-conflict`, `adr-rollback-conflict`, `code-conflict`, `code-clean-boundary`). Two produced a `ValueError` after `stop` (`code-clean`, `adr-clean`). The saved log does not record raw responses or exception messages for this harness. The two `ValueError` results do not identify the violated contract check.
+
+A confirmation rule based solely on agreement between Qwen 4B and either second model would have retained `P1/C2` on this case. Preserve the case as a cross-model regression and assess actor and call-path evidence independently before interpreting agreement as confirmation. The logs show agreement on the erroneous finding. They do not reveal why the models agreed.
 
 ## Remaining checks
 
