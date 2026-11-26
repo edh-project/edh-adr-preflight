@@ -191,7 +191,7 @@ This separate check uses the existing live preflight request and findings valida
 
 Each run is **two inference requests for one model**. Testing all three models once is **six requests**. The probe uses the existing findings-only JSON Schema for every request.
 
-**Terminal 1 — serve one model.** If Gemma already listens on `127.0.0.1:8092` with the same settings, proceed to Terminal 2. Otherwise stop any active server on that port with Ctrl+C in its terminal, paste this block, and wait for `listening`.
+**Terminal 1 — serve one model.** Paste the function definition when the shell prompt is visible. Run `edh_serve gemma31b` and wait for `listening`. If Gemma already listens on `127.0.0.1:8092` with these settings, start with Terminal 2. After that first probe, stop the server with Ctrl+C and paste the function before starting Qwen 27B.
 
 ```sh
 edh_serve() {
@@ -206,7 +206,6 @@ edh_serve() {
     --host 127.0.0.1 --port 8092 --ctx-size 8192 --parallel 1 \
     --n-gpu-layers 99 --reasoning off --no-cache-prompt
 }
-edh_serve gemma31b
 ```
 
 **Terminal 2 — check the active model.** These commands assume the PR #8 checkout used for replay is at `~/WORK/_edh/edh-deployment-review`. Paste this block once. It prints a JSON report and gives each run a fresh output directory.
