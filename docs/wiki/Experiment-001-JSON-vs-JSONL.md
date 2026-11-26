@@ -76,6 +76,19 @@ This is one evaluation approach trialed with Qwen 4B in Experiment 001. It turns
 
 The Qwen 4B run kept the initial failed pilot, repeated a clean-ADR false positive across output configurations, and compared a clarification of the prompt against matched wording. The subsequent thinking-disabled retest found better output validation with JSONL in that setup. Both formats still produced false positives. The observed configuration remains a first-pass review candidate with independent verification. [Live evidence and known regressions](../evidence/qwen4b-json-jsonl-pilot-2026-11-26.md)
 
+### Local comparison matrix
+
+| Model profile | Prior evidence | Role to evaluate |
+| --- | --- | --- |
+| Qwen 3.5 4B `UD-Q5_K_XL` | Paired JSON/JSONL retest and recorded false positives | First-pass reviewer |
+| Qwen 3.8 27B `UD-Q5_K_XL` | [Live ADR matched-pair run](https://github.com/edh-project/edh-adr-preflight/blob/main/docs/evidence/adr-live-matched-pair.md) | Independent review of 4B findings |
+| Gemma 4 31B `UD-Q4_K_XL` | [Live ADR matched-pair run](https://github.com/edh-project/edh-adr-preflight/blob/main/docs/evidence/adr-live-matched-pair.md) | Independent review from a different model family |
+| Additional local Qwen versions or quants | Record the exact GGUF and SHA-256 when selecting each profile | Compare versions or compare quants within the same model release |
+
+1. Use the same six labeled cases and the same held-out cases across profiles. Include the compliant patch-without-credentials and code-boundary failures in the regression set. Hold the output contract and settings fixed where the runtimes support them. Record the effective chat template and thinking behavior for each profile. Label any configuration that changes more than one factor as a profile comparison.
+2. To measure quantization, compare distinct quants of the same model release under the same runtime and settings. Treat the Qwen 4B, Qwen 27B and Gemma 31B runs as different model profiles. Report validity, exact matches, FP/FN, latency, tokens and any missing measurements per profile.
+3. Evaluate each potential second reviewer on the full labeled set, including cases where 4B returns no findings. Separately measure which 4B findings are confirmed or rejected, which missed findings are recovered, and the total latency and tokens if both stages run. Keep ADR approval outside this pilot.
+
 ## Prespecified interpretation
 
 Fixture runs always report HARNESS_ONLY_NOT_MEASURED: the stub is given gold labels to test the pipeline, not model ability. Timing and token metrics are absent, not zero. A live run is inconclusive by default. With at least three repetitions and all paired outputs valid, a JSONL quality regression is flagged if exact matches decrease or FP/FN increase. Otherwise JSONL is marked promising (not proven) only if exact matches do not decrease, FP/FN do not increase, and median latency or total tokens improves on all measured pairs. No statistical significance or general superiority is claimed. The pilot must be repeated on a larger independent corpus before an adoption decision.
