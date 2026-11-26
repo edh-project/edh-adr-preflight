@@ -30,9 +30,24 @@ Gemma's accepted quote from the conflicting ADR:
 
 The baseline allows the deployment pipeline alone to receive those credentials after human approval. The experiment demonstrates a grounded conflict beyond lint. The compatible ADR also drew validly shaped findings and would still route to `REVIEW` under the current policy.
 
+## Run 3 — complete local preflight with the corrected adapter
+
+The follow-up used Gemma as primary and Qwen as independent reviewer. It clarified the common context and acceptance criteria in both inputs, keeping the low-risk label and changing only the final decision sentence between cases. The transport request was equivalent to the code proposed in this PR.
+
+| ADR | Structural findings | Gemma validation | Qwen validation | Preflight decision | Execution authorized |
+| --- | ---: | --- | --- | --- | --- |
+| Compatible | 0 | ok · 1 findings (0 conflict) | ok · 10 findings (0 conflict) | `REVIEW` | `false` |
+| Conflict | 0 | ok · 1 findings (1 conflict) | ok · 20 findings (2 conflict) | `REVIEW` | `false` |
+
+Both reviewers returned validated `conflict` findings for the conflicting ADR and zero `conflict` findings for the compatible ADR. Both cited the same exact sentence quoted above. On the compatible ADR, ambiguity, missing contracts and risk findings still triggered `REVIEW` under the current policy. The finding categories distinguished this pair. The aggregate preflight decisions were identical.
+
+For this repeat, replace the context with `ADR-0001 defines the production credential boundary. This ADR documents how ephemeral coding workspaces and the deployment pipeline apply that boundary.` Replace the shared acceptance criteria with:
+
+> Integration tests attempt to acquire production credentials using the coding-agent identity and the deployment-pipeline identity, before and after human approval. Verify that each case is allowed or denied exactly as specified in the Decision section. In particular, verify denial for identities and approval states outside the permitted case.
+
 ## Inputs
 
-Use [ADR-0001](https://github.com/edh-project/edh-adr-preflight/blob/dcbd92b098fefc3f5e569ad992cba60cc7ee8c5c/adr/accepted/ADR-0001.md) as the accepted baseline and [ADR-0002](https://github.com/edh-project/edh-adr-preflight/blob/dcbd92b098fefc3f5e569ad992cba60cc7ee8c5c/adr/proposed/ADR-0002.md) as the proposed document. Keep `Risk: low` in both variants and replace the acceptance criteria paragraph with this line:
+For runs 1 and 2, use [ADR-0001](https://github.com/edh-project/edh-adr-preflight/blob/dcbd92b098fefc3f5e569ad992cba60cc7ee8c5c/adr/accepted/ADR-0001.md) as the accepted baseline and [ADR-0002](https://github.com/edh-project/edh-adr-preflight/blob/dcbd92b098fefc3f5e569ad992cba60cc7ee8c5c/adr/proposed/ADR-0002.md) as the proposed document. Keep `Risk: low` in both variants and replace the acceptance criteria paragraph with this line:
 
 > An integration test verifies that production credentials can be issued only to the identity and under the conditions specified in this decision.
 
@@ -45,4 +60,4 @@ Set the first two sentences of the decision in both variants to `Use ephemeral w
 
 Run the existing low-risk `clean` live case once per variant in an isolated checkout, with the same accepted baseline and adaptive routing. Apply one candidate at a time. For the transport-only repeat, call `live_review` and `validate_review` on each variant with Gemma alone.
 
-This is one synthetic pair. It supplies an observed conflict and a transport regression. Reliable routing for compatible changes still needs evaluation.
+These synthetic pairs verify the transport fix and show a grounded conflict beyond lint. Reliable automatic routing for compatible changes still needs evaluation.
