@@ -43,7 +43,7 @@ Run `20261126T131710Z-iqpl1f1b` used the same GGUF, benchmark revision and 1,024
 | Thinking disabled | JSONL | 2/2 | 1/2 | 1 | 0 | 0 | 0 | 0/2 |
 | Thinking disabled with `records` JSON schema | JSON | 0/2 | 0/2 | 0 | 2 | 0 | 2 | 0/2 |
 
-The two baseline responses that finished with `stop` began with a literal `</think>` in the final content. With thinking disabled, all four plain-format responses passed validation at the same token limit. Each format still produced one false positive. The report gives per-arm totals, and the exact false-positive case and references require the per-request data.
+The two baseline responses that finished with `stop` began with a literal `</think>` in the final content. With thinking disabled, all four plain-format responses passed validation at the same token limit. Each format still produced one false positive. Subsequent inspection identified the same extra `P1/C1` pair on the clean ADR in both formats.
 
 The `records` schema produced JSON syntax accepted by the JSON decoder. In the conflict example, the model emitted two `complete` records and no findings. The schema allowed each array item independently. The existing validator caught the invalid sequence. This exposes a missing cross-record constraint in the schema contract.
 
@@ -61,10 +61,27 @@ Run `20261126T132928Z-wwqxla2j` used the same two labeled ADRs, the pinned Qwen 
 
 Both responses passed the structural checks. On the clean ADR, the model incorrectly paired `P1` (“Coding agent returns a patch without production credentials.”) with `C1` (“Coding agents must not receive production credentials.”). The IDs were valid. Their relationship was compatible under the supplied texts. This is a semantic false positive on an explicit negation. The baseline clean-ADR excerpts also contain the same pair, although those responses failed parsing because of the leading thinking tag. This two-case run supports further testing of the simpler response contract.
 
-## Next diagnostic
+## Explicit negation probe
 
-Inspection of the original follow-up trial log confirmed that both thinking-disabled plain outputs (JSON and JSONL) flagged the same extra `P1/C1` pair on the clean ADR, with no missed pairs. Together with the findings-only schema run, this reproduces the same semantic false positive across three structurally valid output configurations.
+Inspection of the earlier trial log confirmed the extra `P1/C1` on the clean ADR in thinking-disabled plain JSON, thinking-disabled JSONL, and findings-only JSON.
 
-The [negation probe](../../scripts/qwen4b_negation_probe.py) compares the original findings-only prompt and a polarity clarification on three matched compliant/violating pairs, for 12 requests. Each pair changes only candidate `P1` within the original ADR fixture. It reports structurally valid replies, exact matches, extra and missed findings, and pairs correct on both sides. This tests whether the clarification helps with the observed error. It does not compare JSON with JSONL. A separate 36-request paired test with thinking disabled remains the format comparison.
+Run `negation-h_gg0g7z` compared the original findings-only prompt with a clarification about action, actor and polarity. The [probe](../../scripts/qwen4b_negation_probe.py) issued 12 requests covering the same six cases under both prompts. Within each matched pair, only the text of `P1` changed. The model, schema, token budget and thinking setting were held fixed.
 
-Sources are the developer's local `pilot/report.md`, counts derived from `pilot/trials.jsonl`, and both follow-up reports. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+| Prompt | Structurally valid | Exact | False positives | False negatives | Both sides correct |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Original | 6/6 | 5/6 | 1 | 0 | 2/3 |
+| Clarified | 6/6 | 5/6 | 1 | 0 | 2/3 |
+
+| Candidate phrasing | Compliant side | Violating side |
+| --- | --- | --- |
+| Returns a patch without credentials / after receiving credentials | `P1/C1` falsely flagged | `P1/C1` correctly flagged |
+| Does not receive / receives credentials | Correctly empty | `P1/C1` correctly flagged |
+| Credentials will not be issued / will be issued to the agent | Correctly empty | `P1/C1` correctly flagged |
+
+Both prompts produced the same findings on every case. The observed false positive was specific to the tested compliant wording combining patch return and absence of credentials. The model handled the two tested direct negations correctly. The prompt clarification did not fix the error. The probe tests one synthetic rule with one request per case and prompt, so it does not establish general semantic reliability.
+
+## Remaining checks
+
+Run the separate 36-request plain JSON versus JSONL comparison with thinking disabled. A further semantic check can keep the patch-return action fixed and vary how the credential boundary is expressed. Preserve the unresolved wording as a regression and report semantic errors alongside output validation.
+
+Sources are the developer's local `pilot/report.md`, counts and references from trial logs, and the follow-up diagnostic and negation reports. The per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
