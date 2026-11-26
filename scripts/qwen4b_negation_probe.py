@@ -18,7 +18,7 @@ from urllib.request import ProxyHandler, build_opener
 PAIRS = {
     'original': (
         'Coding agent returns a patch without production credentials.',
-        'Coding agent returns a patch with production credentials.',
+        'Coding agent returns a patch after receiving production credentials.',
     ),
     'receives': (
         'The coding agent does not receive production credentials.',
