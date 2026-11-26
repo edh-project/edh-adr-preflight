@@ -79,6 +79,8 @@ The last two commands intentionally return 2 and 3. Fixture mode uses determinis
 
 ## Live local inference
 
+The [local runner guide](docs/local-inference.md) shows how to start Qwen and Gemma on loopback and record an evidence manifest.
+
 Run these from the repo directory on the Mac, with the llama.cpp servers already available. Discover exact served model IDs before using them:
 
 ```sh
@@ -128,6 +130,8 @@ For a private-network endpoint use the local CLI or a separately isolated privat
 4. Any finding, reviewer failure or high-risk classification => REVIEW (2). No findings on low-risk valid input => ALLOW (0), meaning preflight pass only. Human approval is mandatory before any actual execution; the PoC never dispatches agents, changes cloud resources or grants credentials. A model may miss a conflict or invent a plausible interpretation; exact quotation verification is not semantic truth verification. Risk labels are untrusted human inputs in this demo; production risk classification must be enforced independently.
 
 ## GitHub Actions
+
+The [developer evidence workflow](.github/workflows/adr-local-evidence.yml) verifies the policy and ADR source hashes in a manifest submitted after a local run. A [verified Actions run](https://github.com/edh-project/edh-adr-preflight/actions/runs/45771815066) published the checked manifest and its summary. Model and runtime details come from the developer's machine.
 
 `adr-fixtures.yml` runs unit tests and all three synthetic cases on GitHub-hosted runners. Its success proves fixture behavior only. 
 
