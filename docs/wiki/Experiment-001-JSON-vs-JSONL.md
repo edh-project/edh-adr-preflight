@@ -112,14 +112,13 @@ if [ -f "$edh_model" ] && command -v llama-server >/dev/null &&
   printf "Run directory: %s\n" "$edh_run_dir"
   llama-server --model "$edh_model" --alias "$edh_profile" \
     --host 127.0.0.1 --port 8092 --ctx-size 8192 --parallel 1 --n-gpu-layers 99 \
-    --reasoning-budget 256 --no-cache-prompt \
-    --chat-template-kwargs '{"enable_thinking":false}' 2>&1 | tee "$edh_run_dir/llama-server.log"
+    --reasoning off --no-cache-prompt 2>&1 | tee "$edh_run_dir/llama-server.log"
 else
   printf '%s\n' 'Setup failed: check the GGUF, llama-server and report directory.' >&2
 fi
 ```
 
-Keep this launch command with the report. Record any runtime or `LLAMA_ARG_*` overrides. The flag requests the same thinking setting on each profile. Smoke-check the effective template and whether the runtime still emits reasoning. Record differences as profile settings when templates behave differently. A shared flag value alone is insufficient to establish identical behavior.
+Keep this launch command with the report. Record any runtime or `LLAMA_ARG_*` overrides. Use `--reasoning off` for all measured profiles. One earlier Qwen 4B smoke used the deprecated server flag `--chat-template-kwargs` and remains a separate smoke record. Smoke-check the effective template and whether the runtime still emits reasoning. Record differences as profile settings when templates behave differently. A shared flag value alone is insufficient to establish identical behavior.
 
 **Terminal 2. Run the benchmark from the root of the Experiment 001 checkout.** Copy the run directory printed by Terminal 1. Keep the smoke and measured outputs in separate directories.
 
