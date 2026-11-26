@@ -80,8 +80,23 @@ Run `negation-h_gg0g7z` compared the original findings-only prompt with a clarif
 
 Both prompts produced the same findings on every case. The observed false positive was specific to the tested compliant wording combining patch return and absence of credentials. The model handled the two tested direct negations correctly. The prompt clarification did not fix the error. The probe tests one synthetic rule with one request per case and prompt, so it does not establish general semantic reliability.
 
+## Paired retest with thinking disabled
+
+Run `20261126T135001Z-7sfpob1h` used the same pinned Qwen 4B GGUF and benchmark revision. The diagnostic ran six synthetic ADR/code cases with three repetitions and both plain formats, for 18 requests per format. Both representations changed together on the input and output sides. Thinking was disabled and the output limit was 1,024 tokens. This run used the strict parser with a final `complete` record. It did not use the findings-only schema.
+
+| Format | Requests | Valid | Exact | FP | FN | Rejected after `stop` | Reached output limit |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| JSON | 18 | 12 | 3 | 12 | 6 | 6 | 0 |
+| JSONL | 18 | 18 | 9 | 12 | 0 | 0 | 0 |
+
+Both formats completed without length-limit failures. JSONL passed strict output validation in all 18 requests. All six JSON rejections reported `stop`. The displayed `code-clean` example contained a finding but omitted the required `complete` record. The report includes one representative output; it does not establish the individual cause of every rejected reply. The scorer counts rejected replies as empty. The six JSON false negatives were recorded on rejected replies; none were recorded on a valid reply.
+
+Of 18 matched pairs, 12 had two valid replies. In that subset the median JSONL minus JSON delta was **+27.0 ms** and **+8.5 total tokens**. These are descriptive deltas on jointly valid replies. This run provides evidence of higher parse success under the tested configuration. It does not establish a resource saving, an effect specific to input or output encoding, or general semantic accuracy.
+
+The clean ADR reproduced `P1/C1` on all three repetitions in both arms. The clean code-boundary case added `P1/C1` and `P1/C2` in all three repetitions in both arms. `code-clean` had the extra `P1/C1` in all three JSONL repeats, and `adr-rollback-conflict` had an extra `P1/C2` in all three JSON repeats. Both arms had 12 false positives on accepted output. The three repetitions per case are not independent evidence across 18 different cases.
+
 ## Remaining checks
 
-Run the separate 36-request plain JSON versus JSONL comparison with thinking disabled. A further semantic check can keep the patch-return action fixed and vary how the credential boundary is expressed. Preserve the unresolved wording as a regression and report semantic errors alongside output validation.
+Keep JSONL with thinking disabled as a candidate profile for producing review suggestions. Preserve the repeatable clean-case false positives as regressions. Before extending its role, evaluate the profile on a larger set of independently labeled cases and assess how often a second reviewer confirms or rejects its findings. Measure end-to-end latency and tokens including any second review. Evaluate the findings-only schema separately.
 
-Sources are the developer's local `pilot/report.md`, counts and references from trial logs, and the follow-up diagnostic and negation reports. The per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Sources are the developer's local pilot, diagnostic and negation reports and the paired retest report. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
