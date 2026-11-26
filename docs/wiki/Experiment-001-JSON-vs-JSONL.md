@@ -1,6 +1,6 @@
 # Experiment 001 — JSON vs JSONL for small local models
 
-**Status:** fixture CI passed and one local small-model pilot and follow-up retest are recorded. See the [live evidence](../evidence/qwen4b-json-jsonl-pilot-2026-11-26.md). Broader replication and profile acceptance remain open.
+**Status:** fixture CI passed and the measured local pilot completed 108 requests across Qwen 4B, Qwen 27B, and Gemma 31B. Each profile reported `PILOT_INCONCLUSIVE`. See the [measured results](../evidence/qwen4b-json-jsonl-pilot-2026-11-26.md#measured-local-comparison). Independent corpus replication and profile acceptance remain open.
 
 ## Fixture checkpoint — 2026-11-25
 
@@ -24,7 +24,8 @@ The hosted fixture run verified harness execution. Live findings are recorded se
 - [x] **P0 — Local execution:** check out PR #2 on a trusted workstation; verify the served model ID and endpoint with /v1/models. Choose a small model (initial candidate: Qwen 4B, exact build and quantization to be recorded). Record hardware, server version, context length, inference settings and cache/warm-up state. Do not attach a personal runner to the public repository.
 - [x] **P0 — First measured pair:** execute three repetitions for one model (36 actual requests), using identical settings in both arms. Preserve trials.jsonl, comparison.json and summary.md, including errors, invalid outputs and unavailable token counts. Check that all 18 pairs are represented; do not substitute fixture results for live trials.
 - [x] **P0 — Review evidence:** compare exact matches, valid responses, TP/FP/FN, precision/recall and paired latency/token deltas; examine invalid or truncated outputs and verify findings against the labeled records. Apply the prespecified verdict without changing the rule after viewing results. Document run configuration and limitations.
-- [ ] **P1 — Replicate:** repeat on a second small model, with its own endpoint, model ID, output directory and report. Do not pool model results. Optionally use a larger model as a reference, clearly labeled as such.
+- [x] **P1 — Compare local profiles:** complete 36 live requests per profile on Qwen 4B and the two larger reference profiles, Qwen 27B and Gemma 31B. Keep per-model results separate.
+- [ ] **P1 — Replicate on another small model:** repeat on a second small model, with its own endpoint, model ID, output directory and report. Do not pool model results. Optionally use a larger model as a reference, clearly labeled as such.
 - [ ] **P1 — PR review and hosted reproducibility:** review tests and security boundaries, then merge only when approved. The manually dispatched live GitHub Action is intentionally main-only; until merge, use the local CLI from the experiment branch. Hosted execution requires a reachable HTTPS inference service configured by the operator, not workstation localhost.
 - [ ] **P2 — Isolate the effect:** add a 2×2 ablation (JSON/JSONL input crossed with JSON/JSONL output), a schema-constrained JSON baseline, and a larger independently labeled held-out ADR/code corpus. Keep sample selection and evaluation rules fixed before runs.
 - [ ] **P2 — Strengthen measurement:** repeat on independent samples, quantify uncertainty and caching/order effects, then study streaming/time-to-first-finding separately. Decide whether to integrate the winning format into ADR preflight only after reviewing evidence; do not change runtime admission semantics based on this pilot.
