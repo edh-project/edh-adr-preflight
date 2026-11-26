@@ -149,10 +149,21 @@ Run `actor-gemma31b.ribl8n35` used the [local probe](../../scripts/qwen_gemma_ac
 
 For each of the six original Gemma cases, the JSON and JSONL responses have the same SHA-256 in the smoke log. The two raw JSON samples above match those hashes. The clean sample also matches `adr-clean`. The conflict sample matches `code-conflict`. The JSONL actor probe's clean response matches the hash for `code-clean-boundary` in both arms. For the six smoke cases, the strict output contract explains the observed JSON/JSONL score gap on identical response bytes. In the JSONL arm, five outputs matched their labels and the boundary case remained a false positive.
 
-In the two-case JSONL actor probe, Gemma returned identical valid outputs with `P1/C2`. The label is empty when `pipeline.deploy(patch)` is called after approval and contains `P1/C2` when `agent.deploy(patch)` replaces it. The direct agent call was flagged correctly and the compliant pipeline call was falsely flagged. Both candidates were tested once. Qwen 27B and Qwen 4B actor-probe results are pending.
+In the two-case JSONL actor probe, Gemma returned identical valid outputs with `P1/C2`. The label is empty when `pipeline.deploy(patch)` is called after approval and contains `P1/C2` when `agent.deploy(patch)` replaces it. The direct agent call was flagged correctly and the compliant pipeline call was falsely flagged. Both candidates were tested once.
+
+### Qwen 27B actor probe
+
+Run `actor-qwen27b.dviykyr4` used `Qwen3.8-27B-UD-Q5_K_XL.gguf` with `--reasoning off --no-cache-prompt`, the same benchmark revision, and a 1,024-token output limit. Both JSONL responses ended with `stop` and passed strict validation.
+
+| Candidate after approval | Expected | Observed | Outcome |
+| --- | --- | --- | --- |
+| `pipeline.deploy(patch)` | Empty | `P1/C2` | False positive |
+| `agent.deploy(patch)` | `P1/C2` | `P1/C2` | Exact |
+
+The two raw responses were identical to each other and to Gemma's actor-probe responses. Both models flagged the direct agent call and also flagged the compliant pipeline call. Agreement between these profiles would therefore retain the false positive on this pair. The probe uses one request per candidate and model. The Qwen 4B actor-probe result is pending.
 
 ## Remaining checks
 
 Keep JSONL with thinking disabled as a candidate profile for producing review suggestions. Preserve the repeatable clean-case false positives as regressions. Before extending its role, evaluate the profile on a larger set of independently labeled cases and assess how often a second reviewer confirms or rejects its findings. Measure end-to-end latency and tokens including any second review. Evaluate the findings-only schema separately.
 
-Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, and the Gemma actor-probe report. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Sources are the developer's local pilot, diagnostic, negation, paired retest, local comparison smoke logs, and the Gemma and Qwen 27B actor-probe reports. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
