@@ -49,8 +49,20 @@ The `records` schema produced JSON syntax accepted by the JSON decoder. In the c
 
 The two jointly valid plain-output pairs yielded median JSONL minus JSON deltas of +55.3 ms and +9 tokens. The sample establishes that the two formats can be compared in this configuration. A larger paired run is needed for a format decision.
 
+## Findings-only schema diagnostic
+
+Run `20261126T132928Z-wwqxla2j` used the same two labeled ADRs, the pinned Qwen 4B GGUF and a 1,024-token limit with thinking disabled. The JSON schema returned a single `findings` array. The client required a complete API response and checked the allowed references and duplicate findings.
+
+| Case | Valid | Exact | True positives | False positives | False negatives |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| ADR with two labeled conflicts | 1/1 | 1/1 | 2 | 0 | 0 |
+| Clean ADR | 1/1 | 0/1 | 0 | 1 | 0 |
+| Total | 2/2 | 1/2 | 2 | 1 | 0 |
+
+Both responses passed the structural checks. On the clean ADR, the model incorrectly paired `P1` (“Coding agent returns a patch without production credentials.”) with `C1` (“Coding agents must not receive production credentials.”). The IDs were valid. Their relationship was compatible under the supplied texts. This is a semantic false positive on an explicit negation. The baseline clean-ADR excerpts also contain the same pair, although those responses failed parsing because of the leading thinking tag. This two-case run supports further testing of the simpler response contract.
+
 ## Next diagnostic
 
-Test a schema with a single `findings` array containing only evidence and constraint references. The client requires `finish_reason: stop`, validates the JSON envelope, and enforces reference and duplicate checks. Derive the completion count in the client. Use the same labeled cases to test for missed and extra findings. Inspect the false-positive pairs from the recorded diagnostic before adjusting the prompt. Run the 36-request paired test with thinking disabled to evaluate the two plain formats on all six cases.
+Use the original follow-up trial log to locate the plain-format false positives. Test a separately labeled prompt variant that directs the reviewer to distinguish an explicit prohibition from a candidate that explicitly complies with it. Include compliant and violating paraphrases and preserve the original results. Run the 36-request paired test with thinking disabled for the plain JSON versus JSONL comparison. Evaluate the findings-only schema separately.
 
-Source for this record is the developer's local `pilot/report.md`, terminal counts derived from `pilot/trials.jsonl`, and the follow-up `report.md`. The original per-request files remain with the local runs. This note records aggregate evidence. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
+Sources are the developer's local `pilot/report.md`, counts derived from `pilot/trials.jsonl`, and both follow-up reports. The original per-request files remain with the local runs. See [Experiment 001](https://github.com/edh-project/edh-adr-preflight/pull/2) for the protocol.
