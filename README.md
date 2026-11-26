@@ -2,6 +2,8 @@
 
 A standalone demonstration of architecture-to-execution governance for agentic software delivery. Deterministic ADR checks precede local LLM semantic review; a deterministic policy interprets the review, never granting runtime permissions. AWS/GCP are example delivery targets, not deployed infrastructure.
 
+**Local ADR/code pilot.** All three model profiles passed strict JSONL validation on 18/18 requests. Exact results ranged from 9/18 to 15/18, and all three profiles shared a false positive on an approved pipeline call. See the [108-request comparison and its limitations](docs/evidence/qwen4b-json-jsonl-pilot-2026-11-26.md#measured-local-comparison).
+
 ## Architecture
 
 ```mermaid
@@ -22,7 +24,7 @@ flowchart TD
   B -.-> D[CI/CD to AWS or GCP: future]
 ```
 
-See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI and the manually dispatched BYOI (Bring Your Own Inference) workflow. A separate private-only runner template is documentation only. Live model validation has not yet been performed.
+See [detailed architecture and routing](docs/architecture.md). PRs run fixture regression and a separate trusted-base structural check of changed proposed ADRs; valid proposals remain REVIEW pending semantic review. Real model inference is available through the local CLI and the manually dispatched BYOI (Bring Your Own Inference) workflow. A separate private-only runner template is documentation only.
 
 ## Quick demo (Python 3.10+, no packages)
 
