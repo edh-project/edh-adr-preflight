@@ -69,7 +69,7 @@ class TestEndpointConfiguration(unittest.TestCase):
     def test_https_transport_payload(self):
         import json
         from unittest.mock import patch, MagicMock
-        from preflight import live_review
+        from preflight import SCHEMA, live_review
         response=MagicMock()
         response.__enter__.return_value.read.return_value=json.dumps({'model':'test-model','choices':[{'finish_reason':'stop','message':{'content':'{"findings":[]}'}}],'usage':{'prompt_tokens':10,'completion_tokens':3}}).encode()
         opener=MagicMock();opener.open.return_value=response
@@ -78,7 +78,12 @@ class TestEndpointConfiguration(unittest.TestCase):
         request=opener.open.call_args.args[0]
         self.assertEqual(request.full_url,'https://inference.example.org:8443/v1/chat/completions')
         self.assertEqual(request.get_header('Authorization'),'Bearer example-key')
-        self.assertEqual(json.loads(request.data)['model'],'test-model')
+        payload = json.loads(request.data)
+        self.assertEqual(payload['model'], 'test-model')
+        self.assertEqual(payload['response_format'], {
+            'type': 'json_schema',
+            'json_schema': {'name': 'adr_review', 'strict': True, 'schema': SCHEMA},
+        })
         self.assertEqual(opener.open.call_args.kwargs['timeout'],42)
         self.assertEqual(review,{'findings':[]})
         self.assertEqual(meta['usage']['prompt_tokens'],10)
