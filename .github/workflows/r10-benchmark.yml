@@ -1,0 +1,135 @@
+name: R10 - Reproducible Inference Benchmark
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Execution environment
+        type: choice
+        options: [github-free, github-paid, external-api]
+        default: github-free
+      suite:
+        description: Frozen synthetic development corpus
+        type: choice
+        options: [original-six, adr-only]
+        default: original-six
+      repeats:
+        description: Repeats per case and context format
+        type: choice
+        options: ['1', '2', '3']
+        default: '1'
+      paid_hardware:
+        description: Paid x64 runner type (ignored in free mode)
+        type: choice
+        options: [cpu, cuda]
+        default: cpu
+      external_profile:
+        description: Approved external service profile (ignored in free mode)
+        type: choice
+        options: [external-1, external-2, external-3, external-4, openai, anthropic]
+        default: external-1
+      authorize_nonfree:
+        description: Explicitly authorize potentially billed runner/API calls and synthetic payload disclosure
+        type: boolean
+        default: false
+permissions:
+  contents: read
+concurrency:
+  group: r10-benchmark
+  cancel-in-progress: false
+jobs:
+  gate:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Validate dispatch
+        env:
+          MODE: ${{ inputs.mode }}
+          APPROVED: ${{ inputs.authorize_nonfree }}
+          PUBLIC: ${{ github.event.repository.private == false }}
+          CPU_LABEL: ${{ vars.R10_PAID_CPU_RUNNER }}
+          GPU_LABEL: ${{ vars.R10_PAID_GPU_RUNNER }}
+          HARDWARE: ${{ inputs.paid_hardware }}
+        run: |
+          if [ "$MODE" = github-free ]; then
+            test "$PUBLIC" = true || { echo 'Free mode requires public repository'; exit 1; }
+          else
+            test "$APPROVED" = true || { echo 'Explicit authorization required'; exit 1; }
+          fi
+          if [ "$MODE" = github-paid ]; then
+            if [ "$HARDWARE" = cpu ]; then label="$CPU_LABEL"; else label="$GPU_LABEL"; fi
+            test -n "$label" && test "$label" != self-hosted || { echo 'Configure an approved GitHub-hosted larger runner label'; exit 1; }
+          fi
+  free:
+    needs: gate
+    if: inputs.mode == 'github-free'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run pinned in-job benchmark
+        env:
+          R10_SUITE: ${{ inputs.suite }}
+          R10_REPEATS: ${{ inputs.repeats }}
+          R10_ACCEL: cpu
+        run: bash experiments/r10/hosted.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r10-free-evidence
+          path: reports/r10/
+          retention-days: 7
+  paid:
+    needs: gate
+    if: inputs.mode == 'github-paid' && inputs.authorize_nonfree
+    environment: r10-paid
+    runs-on: ${{ inputs.paid_hardware == 'cuda' && vars.R10_PAID_GPU_RUNNER || vars.R10_PAID_CPU_RUNNER }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run pinned in-job benchmark
+        env:
+          R10_SUITE: ${{ inputs.suite }}
+          R10_REPEATS: ${{ inputs.repeats }}
+          R10_ACCEL: ${{ inputs.paid_hardware }}
+        run: bash experiments/r10/hosted.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r10-paid-evidence
+          path: reports/r10/
+          retention-days: 7
+  external:
+    needs: gate
+    if: inputs.mode == 'external-api' && inputs.authorize_nonfree
+    environment: r10-${{ inputs.external_profile }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run approved external benchmark
+        env:
+          R10_SUITE: ${{ inputs.suite }}
+          R10_REPEATS: ${{ inputs.repeats }}
+          R10_EXTERNAL_APPROVED: ${{ vars.R10_EXTERNAL_APPROVED }}
+          R10_URL: ${{ vars.R10_URL }}
+          R10_MODEL: ${{ vars.R10_MODEL }}
+          R10_API_KEY: ${{ secrets.R10_API_KEY }}
+          PROFILE: ${{ inputs.external_profile }}
+        run: |
+          test "$R10_EXTERNAL_APPROVED" = true && test -n "$R10_URL" && test -n "$R10_MODEL" || { echo 'Approved environment configuration required'; exit 1; }
+          provider=openai-compatible
+          if [ "$PROFILE" = anthropic ]; then provider=anthropic; fi
+          python3 experiments/r10/runner.py --output reports/r10 --suite "$R10_SUITE" --repeats "$R10_REPEATS" --provider "$provider" --profile "$PROFILE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r10-external-evidence
+          path: reports/r10/
+          retention-days: 7

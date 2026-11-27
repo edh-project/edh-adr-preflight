@@ -1,0 +1,50 @@
+{
+  "status": "FEASIBILITY_ONLY",
+  "arms": {
+    "markdown": {
+      "trials": 6,
+      "valid": 6,
+      "exact": 2,
+      "tp": 5,
+      "fp": 6,
+      "fn": 0,
+      "median_wall_seconds": 0.8069245,
+      "median_prompt_tokens": 175.5,
+      "median_total_tokens": 206.5,
+      "reasoning_nonempty": 0
+    },
+    "json": {
+      "trials": 6,
+      "valid": 6,
+      "exact": 4,
+      "tp": 5,
+      "fp": 3,
+      "fn": 0,
+      "median_wall_seconds": 0.70625,
+      "median_prompt_tokens": 190.5,
+      "median_total_tokens": 215.0,
+      "reasoning_nonempty": 0
+    },
+    "jsonl": {
+      "trials": 6,
+      "valid": 6,
+      "exact": 3,
+      "tp": 5,
+      "fp": 4,
+      "fn": 0,
+      "median_wall_seconds": 0.8149010000000001,
+      "median_prompt_tokens": 195.5,
+      "median_total_tokens": 225.0,
+      "reasoning_nonempty": 0
+    }
+  },
+  "cases": 6,
+  "trials": 18,
+  "limitations": [
+    "reused six synthetic development cases",
+    "one repeat; no independent holdout",
+    "fixed output JSON schema; server enforcement not independently confirmed",
+    "wall time only, no energy or utilization measurement",
+    "no causal or production claims"
+  ]
+}

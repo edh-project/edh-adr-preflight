@@ -55,6 +55,8 @@ A 10–15% overall reduction is an exploratory business hypothesis: at the illus
 
 Preflight remains advisory. Critical risk, missing evidence, external disclosure restrictions and required human approval override cost optimization.
 
+**Executable research:** [R10-E01 benchmark harness and dispatch instructions](../../../experiments/r10/README.md) — implementation candidate; hosted execution not yet verified.
+
 ## Abstract
 
 Agentic software engineering introduces an architectural governance challenge: keeping proposed decisions consistent with organizational architecture, security policies, infrastructure constraints and accepted ADRs before implementation begins. Systematic use of frontier models for every validation request may add cost, latency, external dependency and disclosure risk. This proposal investigates whether locally deployed quantized small language models (SLMs), operating inside deterministic verification and risk-aware routing, can reliably perform a meaningful proportion of architectural preflight before escalation. Qwen3.5-4B Q5 is the initial candidate, not the research boundary. The objective is to identify minimum sufficient intelligence, capability limits, quality–cost trade-offs and safe escalation criteria, not replace architects or claim empirical results.
