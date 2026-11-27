@@ -1,0 +1,30 @@
+{
+  "experiment": "experiment-001",
+  "check": "local-json-schema-response-contract",
+  "evidence_origin": "minimized transcription of operator-provided terminal reports",
+  "client_checkout_after_pull": "bb28d238660efe744ecce59c8f647f07abded298",
+  "client_revision_basis": "The Qwen 4B log records the update; the operator ran the Qwen 27B and Gemma retests through the same probe procedure.",
+  "cases": {
+    "clean": "ADR-0002.md",
+    "conflict": "ADR-0003.md"
+  },
+  "trials_sha256": "04b90798eed9b48d02ef8accfa836e3aa2d70b7ef689a775e769ce29398c028e",
+  "counts": {
+    "calls": 6,
+    "json_decoded": 6,
+    "accepted": 5
+  },
+  "original_request_baseline": {
+    "calls": 6,
+    "accepted": 0
+  },
+  "execution_authorized": false,
+  "comparisons": [
+    "Live reviewer request and validator behavior on two ADRs."
+  ],
+  "limitations": [
+    "Source rows are derived from terminal reports, not byte-identical copies of the local probe.json files.",
+    "Raw HTTP responses and rejected quote are unavailable in the supplied reports.",
+    "The probe did not vary context availability or format. Its results are outside the R10 A/B/C and format-only datasets."
+  ]
+}
