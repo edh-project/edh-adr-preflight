@@ -1,0 +1,11 @@
+flowchart TD
+ A[10000 monthly requests] --> B[Small local - 10000]
+ B -->|2000 escalate| C[Larger local - 2000]
+ C -->|1000 authorized escalations| D[Premium cloud - 1000]
+ A -.-> E[Cloud-only baseline - USD 1040]
+ B --> F[Hybrid cost - USD 294]
+ C --> F
+ D --> F
+ E --> G[Illustrative workload reduction - 71.7 percent]
+ F --> G
+ G --> H[20 percent eligible spend implies 14.3 percent overall]

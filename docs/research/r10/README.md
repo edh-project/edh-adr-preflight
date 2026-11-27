@@ -8,6 +8,53 @@ EDH Project · A-SDLC Research Portfolio · Candidate research proposal · 26 No
 
 **Status:** candidate; value unassessed; priority TBD; owner unassigned. Related to R01, R03, R04, R05 and R06. This is not an Experiment 004 authorization or a validated production capability.
 
+## Engineering overview — why this research matters
+
+In an agentic SDLC, a proposed architectural decision can trigger costly planning, implementation, testing and review. Finding contradictions after implementation begins wastes both engineering time and model inference. Sending every proposal and its context to a premium cloud model is not necessarily the best alternative.
+
+For a Senior or Staff Engineer, R10 is an investigation of an upstream, model-agnostic control point in an internal developer platform (IDP): apply deterministic rules first; use a small local model for bounded semantic checks against known policies and accepted ADRs; escalate unresolved or high-risk cases to stronger models or human reviewers. The aim is not to make a 4B model behave like a frontier model, but to establish which workloads require which level of reasoning, and what it costs to deliver them reliably.
+
+### R10-A — Structured Context Engineering for Small Language Models
+
+Can the representation and selection of the same architectural knowledge improve the useful capability of a small quantized model? Compare Markdown, JSON and JSONL with matched facts, fixed model settings and independently labelled outcomes; isolate retrieval, token budget, model size and quantization in subsequent comparisons.
+
+![R10-A — context-format comparison](assets/16-overview-context-engineering.svg)
+
+*Figure O1. Proposed controlled comparison. No format is assumed superior.*
+
+[Mermaid source](assets/16-overview-context-engineering.mmd)
+
+### R10-B — Enterprise Inference Cost Optimization through Multi-Tier Model Cascades
+
+Can reliable bounded checks be handled locally to avoid expensive cloud calls without weakening governance? The illustrative Section 8 scenario has 10,000 small-local requests, of which 2,000 reach a larger local tier and 1,000 reach premium cloud. The modeled costs are USD 1,040 cloud-only and USD 294 hybrid, including assumed fixed and variable inference costs.
+
+![R10-B — illustrative routing and cost comparison](assets/17-overview-inference-economics.svg)
+
+*Figure O2. Synthetic example, not measured EDH performance. Quality parity remains unproven.*
+
+[Mermaid source](assets/17-overview-inference-economics.mmd)
+
+The 71.7% modeled reduction applies to this eligible workload, not to the entire company. If the workload accounts for 20% of baseline LLM expenditure, the overall net reduction relative to that baseline is approximately 14.3%.
+
+![Overall budget savings equation](assets/19-overview-budget-equation.svg)
+
+A 10–15% overall reduction is an exploratory business hypothesis: at the illustrative workload saving, roughly 14–21% of baseline spend must be eligible. Actual cloud invoice savings and net TCO savings must be reported separately. Account for additional operations, review, failures and caching; compare against economical cloud alternatives, not just premium models. Unaffected workloads are assumed unchanged.
+
+### How the workstreams connect
+
+![Connection between context engineering and inference economics](assets/18-overview-research-connection.svg)
+
+*Figure O3. Proposed causal chain; every link must be tested.*
+
+[Mermaid source](assets/18-overview-research-connection.mmd)
+
+| Workstream | Engineering outcome | Business question |
+| --- | --- | --- |
+| R10-A | Capability boundaries by format, task, model and quantization | Which checks can safely move to inexpensive inference? |
+| R10-B | Calibrated routing, resource profile and quality-matched TCO | Does delegation materially reduce platform operating costs? |
+
+Preflight remains advisory. Critical risk, missing evidence, external disclosure restrictions and required human approval override cost optimization.
+
 ## Abstract
 
 Agentic software engineering introduces an architectural governance challenge: keeping proposed decisions consistent with organizational architecture, security policies, infrastructure constraints and accepted ADRs before implementation begins. Systematic use of frontier models for every validation request may add cost, latency, external dependency and disclosure risk. This proposal investigates whether locally deployed quantized small language models (SLMs), operating inside deterministic verification and risk-aware routing, can reliably perform a meaningful proportion of architectural preflight before escalation. Qwen3.5-4B Q5 is the initial candidate, not the research boundary. The objective is to identify minimum sufficient intelligence, capability limits, quality–cost trade-offs and safe escalation criteria, not replace architects or claim empirical results.
@@ -174,6 +221,10 @@ flowchart TD
 | A vs B | Availability of architectural context |
 | B vs C | Representation of identical facts |
 | C vs D | Retrieval and context selection |
+| B vs E | Markdown vs JSON with identical facts |
+| C vs E | JSONL vs JSON with identical facts |
+
+Arm E (ADR + identical facts in JSON) is a proposed extension of the original A–D design. Figure O1 depicts the additional format-only comparison; keep retrieval and semantic facts fixed across B, C and E.
 
 Freeze prompts, context versions, model hashes, runtime, seeds and settings. Match semantic facts in Markdown/JSONL; report token counts and token-budget-matched sensitivity. Separate thinking/non-thinking. Compare Q4/Q5/Q6/Q8 and optional BF16 on identical cases. Include deterministic-only, direct larger local, direct budget cloud, direct premium cloud and cascade baselines. Independently label cases with expert adjudication, not model-as-ground-truth. Separate calibration from final holdout; repeat seeds and use paired confidence intervals. Include critical and adversarial cases.
 
@@ -240,27 +291,27 @@ The metric is undefined when there are no correctly resolved validations. Includ
 
 **Hybrid monthly cost**
 
-$
+$$
 C_{\mathrm{hybrid}}=F+N\left(v_s+r_l v_l+r_c c\right)
-$
+$$
 
 **Cloud-only monthly cost**
 
-$
+$$
 C_{\mathrm{cloud}}=Nc
-$
+$$
 
 **Monthly break-even volume**
 
-$
+$$
 N>\frac{F}{(1-r_c)c-v_s-r_l v_l}
-$
+$$
 
 **Cost per correctly resolved validation**
 
-$
+$$
 C_{\mathrm{correct}}=\frac{\text{Total attributable cost}}{\text{Correctly resolved validations}}
-$
+$$
 
 [LaTeX source file](assets/economics-equations.tex)
 
@@ -306,6 +357,48 @@ The desired outcome can be higher locally resolved coverage at the same residual
 
 The question is not how to add an LLM to CI/CD, but how much intelligence each stage requires and how to provision it at the lowest sustainable cost without compromising architectural governance. Negative outcomes and measured limits are useful. No enterprise savings, deployment readiness or novelty priority is claimed. Research scope, ownership, budget and permitted data remain subject to Experiment 003 governance.
 
+## 12. Interdisciplinary Research Positioning
+
+![Potential interdisciplinary research area: context engineering, small language models, inference economics and enterprise FinOps](assets/20-interdisciplinary-research-positioning.svg)
+
+*Figure 4. Potential interdisciplinary research area. The intersection represents a proposed applied research question, not established novelty.*
+
+R10 combines software architecture and governance, context engineering, empirical evaluation of quantized models, and inference systems economics. Each ingredient has substantial prior art. The intended contribution is a reproducible, risk-aware investigation of their interaction in **pre-implementation architectural validation**, rather than a claim to have invented structured context or model cascades. Position the work as an industrial applied research proposal within EDH; scientific novelty, generalizability and publication suitability remain open questions.
+
+## 13. Threats to Validity and Research Limitations
+
+| Threat | Mitigation |
+| --- | --- |
+| Input format confounded with semantic content, retrieval or token count | Freeze facts, compare Markdown/JSON/JSONL directly, add token-budget-matched sensitivity tests. |
+| Structured output reduces reasoning or merely improves parseability | Hold output contract fixed for input experiments; independently ablate reasoning/formatting, decoding and validation. Measure syntax and semantic correctness separately. |
+| Small or synthetic corpus; class imbalance; label leakage | Separate calibration and held-out sets, use independent expert labels, report class counts and confidence intervals; expand with authorized real ADRs. |
+| Routing overfit or correlated model failures | Calibrate on separate data; measure severity-specific false acceptance and abstention; keep mandatory review independent of model confidence. |
+| Runtime, quantizer and hardware confounding | Pin artifacts, settings and versions; measure cold/warm, prefill/decode, peak memory, energy and concurrency. |
+| Cloud comparison and cost assumptions | Compare budget, cached/batched, routed and premium baselines; use actual billed tokens and full incremental TCO; vary eligible spend and utilization. |
+| External validity and knowledge governance | Do not generalize SQL/tool-call benchmarks to ADRs; repeat across model families, ADR domains and approved environments; retain disclosure boundaries. |
+| Novelty and publication bias | Conduct a systematic search and extract negative results; distinguish research publications, preprints, technical guidance and vendor claims. |
+
+The initial 120-case pilot estimates feasibility, not production safety or statistical equivalence. The 10–15% overall budget hypothesis and all target thresholds remain unvalidated. A null or negative result is a useful outcome.
+
+## 14. References and Related Work
+
+The [annotated bibliography and evidence register](REFERENCES.md) contains 28 selected sources with dates, provenance, workstream relevance and applicability limits. The following reading map connects the most relevant sources to specific R10 decisions:
+
+| Source | Relevance and implication |
+| --- | --- |
+| [Structured Context Engineering for File-Native Agentic Systems](https://arxiv.org/abs/2602.05447), February 2026 | 9,649 experiments, 11 models, four formats; aggregate format difference was not statistically significant (p=0.484). Do not assume JSONL wins; test model-specific effects and retrieval separately. |
+| [The Format Tax](https://arxiv.org/abs/2604.03616), April 2026 | Structured **output** can impair reasoning in open-weight models. Distinguish this from input-context engineering. |
+| [Evaluating Large Language Models for Detecting Architectural Decision Violations](https://arxiv.org/abs/2602.07609), February 2026 | Closest architectural compliance reference; post-implementation detection is not prospective preflight. |
+| [Mapping the Efficiency Landscape of Small Language Models](https://ijcai.org/proceedings/2026/627), IJCAI 2026 | 75 SLMs, five tasks; measure task-specific performance and energy. |
+| [Cold Start Latency of Quantized Small Language Models on Serverless CPU Infrastructure](https://research.google/pubs/cold-start-latency-of-quantized-small-language-models-on-serverless-cpu-infrastructure/), Google Research | GGUF, CPU serving and memory tiers for models up to 3.8B; informs local service economics. |
+| [Switchcraft](https://www.microsoft.com/en-us/research/publication/switchcraft-ai-model-router-for-agentic-tool-calling/), Microsoft Research, 2026 | Existing task-aware routing research; evaluate alternative routers. |
+| [Scaling laws meet model architecture](https://www.amazon.science/blog/making-llms-faster-without-sacrificing-accuracy), AWS AI Labs / ICLR 2026 | Architecture matters for inference throughput even at similar parameter counts. |
+| [Code for rules, models for judgment](https://aws.amazon.com/blogs/machine-learning/cut-generative-ai-costs-code-for-rules-models-for-judgment/), AWS, 17 November 2026 | Recent industrial guidance on deterministic logic and right-sized inference. |
+| [Optimizing cost per task and proving agent ROI](https://aws.amazon.com/blogs/machine-learning/optimizing-cost-per-task-and-proving-agent-roi-on-amazon-bedrock/), AWS, 12 November 2026 | Cost per task and operational attribution, relevant to R10-B. |
+| [From Requests to Sessions](https://systems.seas.harvard.edu/blog/agentic-traces-freeinference/), Harvard Systems Group, 4 November 2026 | Session-aware agentic workload characterization; motivates measuring growing context and caching. |
+
+**Evidence status:** selected related work reviewed 27 November 2026; not an exhaustive search. Peer-reviewed proceedings, preprints, official research summaries, vendor guidance and dynamic price cards are explicitly distinguished in the register. Some recent sources were verified through indexed official descriptions rather than full-text access. No external benchmark demonstrates our exact Qwen3.5-4B Q5 + ADR + JSONL workflow or the proposed enterprise budget reduction.
+
 ## Source assets
 
-All eleven SVG illustrations and four vector equation renderings are in [assets](assets/). The economic equations also have [editable LaTeX source](assets/economics-equations.tex). Three architecture diagrams also have editable Mermaid sources: [SDLC](assets/01-sdlc-control-point.mmd), [cascade](assets/02-inference-cascade.mmd), [experiment](assets/03-experimental-design.mmd). Graphics are recreated vector illustrations, not screenshots of the chat. The GitHub edition is static; the separate HTML edition has the interactive calculator.
+All fifteen SVG illustrations and five vector equation renderings are in [assets](assets/). The three overview diagrams have editable Mermaid sources, and the [overall budget equation](assets/overview-budget-equation.tex) has LaTeX source. The economic equations also have [editable LaTeX source](assets/economics-equations.tex). Three architecture diagrams also have editable Mermaid sources: [SDLC](assets/01-sdlc-control-point.mmd), [cascade](assets/02-inference-cascade.mmd), [experiment](assets/03-experimental-design.mmd). Graphics are recreated vector illustrations, not screenshots of the chat. The GitHub edition is static; the separate HTML edition has the interactive calculator.

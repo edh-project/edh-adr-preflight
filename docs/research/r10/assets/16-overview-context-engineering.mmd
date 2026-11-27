@@ -1,0 +1,10 @@
+flowchart TD
+ A[Identical architectural facts] --> B[Markdown]
+ A --> C[JSON]
+ A --> D[JSONL]
+ B --> E[Same local SLM - 4B Q5]
+ C --> E
+ D --> E
+ E --> F[Validation quality]
+ E --> G[Latency]
+ E --> H[Token use]
