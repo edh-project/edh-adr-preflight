@@ -207,11 +207,19 @@ Hybrid example: fixed local $150/month, $0.002 per SLM request, 20% reach larger
 
 For monthly volume N, fixed cost F, per-request small-local cost v_s, larger-local cost v_l and cloud cost c, with unconditional escalation fractions r_l and r_c:
 
-```text
-C_hybrid = F + N * (v_s + r_l*v_l + r_c*c)
-C_cloud  = N*c
-Break-even N > F / ((1-r_c)*c - v_s - r_l*v_l)
-```
+**Hybrid monthly cost**
+
+![Hybrid monthly cost: Hybrid monthly cost equals fixed monthly cost plus monthly request volume times the sum of small-local unit cost, larger-local escalation cost and cloud escalation cost.](assets/12-hybrid-monthly-cost.svg)
+
+**Cloud-only monthly cost**
+
+![Cloud-only monthly cost: Cloud-only monthly cost equals request volume times cloud unit cost.](assets/13-cloud-monthly-cost.svg)
+
+**Break-even condition (hybrid strictly cheaper than cloud-only)**
+
+![Monthly break-even volume: Monthly request volume must exceed fixed monthly cost divided by the positive savings per request.](assets/14-break-even-volume.svg)
+
+The escalation fractions satisfy $0 \le r_c \le r_l \le 1$: cloud requests are a subset of larger-local requests. All costs use the same currency and accounting period.
 
 The denominator must be positive; illustrative Astra break-even is about 1,675 validations/month. Evaluate 1k/10k/100k workloads, utilization, concurrency and service-level constraints. The same formula supports sensitivity analysis across cloud rates, prompt sizes and escalation fractions.
 
@@ -220,7 +228,43 @@ The denominator must be positive; illustrative Astra break-even is about 1,675 v
 *Total cost of ownership components.*
 
 
-TCO includes amortization, redundant capacity, electricity/cooling, monitoring, upgrades, on-call, retries, audit, review and failure/rework. **Cost per correct validation = total attributable cost / correctly resolved validations.** Include human review where required.
+TCO includes amortization, redundant capacity, electricity/cooling, monitoring, upgrades, on-call, retries, audit, review and failure/rework. **Cost per correctly resolved validation**
+
+![Cost per correctly resolved validation: Total attributable cost divided by the number of correctly resolved validations.](assets/15-cost-per-correct-validation.svg)
+
+The metric is undefined when there are no correctly resolved validations. Include human review where required.
+
+
+<details>
+<summary>Native mathematical notation and editable LaTeX source</summary>
+
+**Hybrid monthly cost**
+
+$
+C_{\mathrm{hybrid}}=F+N\left(v_s+r_l v_l+r_c c\right)
+$
+
+**Cloud-only monthly cost**
+
+$
+C_{\mathrm{cloud}}=Nc
+$
+
+**Monthly break-even volume**
+
+$
+N>\frac{F}{(1-r_c)c-v_s-r_l v_l}
+$
+
+**Cost per correctly resolved validation**
+
+$
+C_{\mathrm{correct}}=\frac{\text{Total attributable cost}}{\text{Correctly resolved validations}}
+$
+
+[LaTeX source file](assets/economics-equations.tex)
+
+</details>
 
 ## 9. Metrics and pilot criteria
 
@@ -264,4 +308,4 @@ The question is not how to add an LLM to CI/CD, but how much intelligence each s
 
 ## Source assets
 
-All eleven SVG graphics are in [assets](assets/). Three architecture diagrams also have editable Mermaid sources: [SDLC](assets/01-sdlc-control-point.mmd), [cascade](assets/02-inference-cascade.mmd), [experiment](assets/03-experimental-design.mmd). Graphics are recreated vector illustrations, not screenshots of the chat. The GitHub edition is static; the separate HTML edition has the interactive calculator.
+All eleven SVG illustrations and four vector equation renderings are in [assets](assets/). The economic equations also have [editable LaTeX source](assets/economics-equations.tex). Three architecture diagrams also have editable Mermaid sources: [SDLC](assets/01-sdlc-control-point.mmd), [cascade](assets/02-inference-cascade.mmd), [experiment](assets/03-experimental-design.mmd). Graphics are recreated vector illustrations, not screenshots of the chat. The GitHub edition is static; the separate HTML edition has the interactive calculator.
