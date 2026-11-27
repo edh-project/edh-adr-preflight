@@ -151,6 +151,127 @@ For each profile retain `trials.jsonl`, `comparison.json`, `summary.md`, the GGU
 
 **Evaluate the cascade after the independent runs.** Match results by case, repetition and format. Compare 4B alone with 27B alone and Gemma alone before applying a predeclared routing rule to the saved rows. Count 4B findings the second model confirms or rejects and violations the second model recovers on cases where 4B returned nothing. Report the second-stage call rate and summed latency and tokens. Treat failed or invalid responses as unresolved. The simulated cascade reuses independent results. Its estimates need a separate end-to-end run for any workflow that passes the first model's findings into the second model's prompt.
 
+## Deployment-rule regression and response contract
+
+The actor probe found a shared false positive on an approved pipeline call. The regression checks evaluate two independent facts: the verified deployment executor and whether required approval was verified. Pipeline and agent calls are tested with and without approval. An unknown executor or approval produces an unresolved result for that rule.
+
+Replay the measured logs from this checkout:
+
+```sh
+edh_runs="$HOME/WORK/_edh/edh-model-eval/runs"
+python3 review_validation.py replay \
+  "$edh_runs/qwen4b.measured.b2XgGa/results-r3/trials.jsonl" \
+  "$edh_runs/qwen27b.measured.dJBUVz/results-r3/trials.jsonl" \
+  "$edh_runs/gemma31b.measured.AGCWNS/results-r3/trials.jsonl"
+```
+
+Replay checks the case identifier and the exact record-set SHA-256 before suppressing findings contradicted by known facts on the approved synthetic pipeline call. It reports precision inputs and exact-match counts before and after, separately by model and format. Other cases and output validity retain their measured results. The pilot files supply the baseline and are opened read-only. A real CI integration requires a trusted source that resolves the execution identity and approval evidence.
+
+### Replay results on all 108 saved requests
+
+| Model | Format | Valid | FP before → after | Exact before → after | TP / FN retained |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Qwen 4B | JSON | 12/18 | 12 → 6 | 3 → 6 | 9 / 6 |
+| Qwen 4B | JSONL | 18/18 | 12 → 6 | 9 → 12 | 15 / 0 |
+| Qwen 27B | JSON | 18/18 | 3 → 0 | 15 → 18 | 15 / 0 |
+| Qwen 27B | JSONL | 18/18 | 3 → 0 | 15 → 18 | 15 / 0 |
+| Gemma 31B | JSON | 0/18 | 0 → 0 | 0 → 0 | 0 / 15 |
+| Gemma 31B | JSONL | 18/18 | 3 → 0 | 15 → 18 | 15 / 0 |
+
+Replay changed three responses per affected model and format. At each appearance of the approved synthetic call, it removed the findings contradicted by the verified facts. All true-positive and false-negative counts were retained. The scope is the original pinned fixture; coverage on unseen cases and trusted real-workflow identity and approval evidence remain open. Gemma JSON responses still fail the benchmark's strict format check.
+
+### Live JSON Schema contract probe
+
+This separate check uses the existing live preflight request and findings validator against one model at a time. Every model reviews the same two proposed ADRs against the accepted baseline:
+
+| Request | Scenario | What to look for |
+| --- | --- | --- |
+| `clean` (`ADR-0002`) | The agent returns a patch. The pipeline can deploy after human approval. | No spurious deployment or credential conflict. |
+| `conflict` (`ADR-0003`) | The agent receives production credentials and can deploy directly without human approval. | Findings should identify those conflicts and quote relevant evidence. |
+
+Each run is **two inference requests for one model**. Testing all three models once is **six requests**. The probe uses the existing findings-only JSON Schema for every request.
+
+**Terminal 1 — serve one model.** Paste the function definition when the shell prompt is visible. Run `edh_serve gemma31b` and wait for `listening`. If Gemma already listens on `127.0.0.1:8092` with these settings, start with Terminal 2. After that first probe, stop the server with Ctrl+C and paste the function before starting Qwen 27B.
+
+```sh
+edh_serve() {
+  local edh_alias="$1" edh_gguf
+  case "$edh_alias" in
+    gemma31b) edh_gguf="$HOME/models/Gemma4-31B/gemma-4-31B-it-qat-UD-Q4_K_XL.gguf" ;;
+    qwen27b) edh_gguf="$HOME/models/Qwen3.8-27B/Qwen3.8-27B-UD-Q5_K_XL.gguf" ;;
+    qwen4b) edh_gguf="$HOME/models/Qwen3.5-4B/Qwen3.5-4B-UD-Q5_K_XL.gguf" ;;
+    *) printf 'Unknown model: %s\n' "$edh_alias" >&2; return ;;
+  esac
+  llama-server --model "$edh_gguf" --alias "$edh_alias" \
+    --host 127.0.0.1 --port 8092 --ctx-size 8192 --parallel 1 \
+    --n-gpu-layers 99 --reasoning off --no-cache-prompt
+}
+```
+
+**Terminal 2 — check the active model.** These commands assume the PR #8 checkout used for replay is at `~/WORK/_edh/edh-deployment-review`. Paste this block once. It prints a JSON report and gives each run a fresh output directory.
+
+```sh
+edh_check_schema() {
+  local edh_root="$HOME/WORK/_edh/edh-model-eval/schema-probes"
+  local edh_out edh_status=0
+  if mkdir -p "$edh_root" && edh_out=$(mktemp -d "$edh_root/$1.XXXXXX"); then
+    python3 "$HOME/WORK/_edh/edh-deployment-review/review_validation.py" probe "$1" \
+      > "$edh_out/probe.json" || edh_status=$?
+    cat "$edh_out/probe.json"
+    printf '\nExit status: %s\nReport: %s\n' "$edh_status" "$edh_out/probe.json"
+  fi
+}
+edh_check_schema gemma31b
+```
+
+When the probe finishes, return to Terminal 1. Press Ctrl+C and run the next `edh_serve` command. Wait for `listening`, then run the matching command in Terminal 2.
+
+| Terminal 1 | Terminal 2 |
+| --- | --- |
+| `edh_serve qwen27b` | `edh_check_schema qwen27b` |
+| `edh_serve qwen4b` | `edh_check_schema qwen4b` |
+
+Read the two rows in `probe.json`. A row with `valid: true` passed the live response contract, including quote validation. Check `findings` independently: a valid empty array on the conflicting ADR is a missed conflict. The probe exits with status 0 when both rows pass validation and 1 when at least one fails. A setup error exits with status 2.
+
+#### Initial live run and request fix
+
+All six responses from the first schema probe failed with the old request shape. The active Gemma and Qwen 27B models reported the expected aliases and returned parseable JSON, which the findings validator rejected. Qwen 4B failed at JSON decoding. An earlier Qwen 27B attempt ended with two HTTP errors and is recorded separately from the six responses.
+
+For the measured runtime (build 10621, commit `c1d0e7a00`), [the server implementation](https://github.com/ggml-org/llama.cpp/blob/c1d0e7a00/tools/server/server-common.cpp) reads the constrained schema from `response_format.json_schema.schema` when the type is `json_schema`. The original request placed the schema directly under `response_format`. Preflight now sends the nested wrapper and the probe reports the failure stage, HTTP status or JSON error location where applicable. The initial observations remain the baseline for a new two-case probe per model.
+
+#### Qwen 4B retest with the corrected request
+
+Run `qwen4b.SUGjub` used client revision `bb28d238660efe744ecce59c8f647f07abded298`. Both completions reported the requested alias and finished with `stop`. Both decoded as JSON. The complete request-and-validation path accepted **1 of 2** responses, compared with **0 of 2** for this model before the request fix.
+
+| Case | Accepted | Review observation |
+| --- | --- | --- |
+| `ADR-0002` (clean) | No | `review_validation` rejected an ungrounded evidence quote. The probe does not retain the rejected quote. |
+| `ADR-0003` (conflict) | Yes | The response identified production credentials and direct deployment without human approval. It also cited direct deployment again and flagged latency and rollback statements that do not directly contradict the accepted ADR. |
+
+The conflicting response shows why an exact source quote is a separate check from whether the finding follows from the text.
+
+#### Complete three-model retest with the corrected request
+
+All six completions reported the requested alias, ended with `stop`, and decoded as JSON. Five passed the full findings validator, compared with zero before the request fix.
+
+| Local model and run | Clean ADR | Conflicting ADR | Accepted |
+| --- | --- | --- | ---: |
+| Qwen 4B · `qwen4b.SUGjub` | Rejected: ungrounded quote | Accepted, four findings | 1/2 |
+| Qwen 27B · `qwen27b.zsc3FL` | Accepted, three warnings | Accepted, three findings | 2/2 |
+| Gemma 31B · `gemma31b.E584r9` | Accepted, two findings | Accepted, two findings | 2/2 |
+
+All three models identified the core violation in `ADR-0003`: the proposal gives the agent production credentials and allows direct deployment without human approval. The local validator checked the exact source quotes. The models sometimes repeated the same violation or inferred concerns beyond the cited policy.
+
+On `ADR-0002`, Qwen 27B and Gemma both flagged an underspecified patch handoff. The ADR permits a patch and requires human approval before the pipeline acquires credentials, but gives little detail about how the reviewed patch reaches the pipeline. This is a proposed improvement to the ADR. Gemma's critical ambiguity around read-only access does not establish a direct violation: an agent can return a patch without writing to the source repository. These two ADRs form a live contract check. The run has insufficient breadth for model ranking or precision and recall estimates.
+
+#### Evidence bundle and relationship to R10
+
+[Normalized trial rows](../evidence/experiment-001-schema-probe/trials.jsonl) and [provenance](../evidence/experiment-001-schema-probe/provenance.json) preserve the six corrected-request observations. The original per-model `probe.json` files remain on the developer Mac. The committed files are a minimized derivative of the supplied terminal reports.
+
+[R10-E01 on GitHub Actions](https://github.com/edh-project/edh-adr-preflight/blob/b30ed61c787c277a478692b26d3be3359e421890/.github/workflows/r10-benchmark.yml) uses a separate runner, prompt, dataset contract and findings schema. It already sends the nested JSON Schema wrapper. Its current Markdown, JSON and JSONL modes share the same explicit facts and correspond to B, E and C in the [R10 design](https://github.com/edh-project/edh-adr-preflight/blob/b30ed61c787c277a478692b26d3be3359e421890/docs/research/r10/README.md#7-experimental-methodology). This six-request preflight probe varied the model and ADR case while keeping the review path fixed. Its rows are evidence for the preflight client and cannot populate the R10 comparison.
+
+The ADR-only **A** condition is still absent from the workflow. Its scoring contract needs to account for a model that cannot cite constraint IDs it was never shown. Simply removing constraint records from the existing input would force the existing reference validator to reject any nonempty findings. Define an independently scored outcome available to all conditions before collecting A/B/C, then preserve the existing format-only baseline under its original protocol.
+
 ## Prespecified interpretation
 
 Fixture runs always report HARNESS_ONLY_NOT_MEASURED: the stub is given gold labels to test the pipeline, not model ability. Timing and token metrics are absent, not zero. A live run is inconclusive by default. With at least three repetitions and all paired outputs valid, a JSONL quality regression is flagged if exact matches decrease or FP/FN increase. Otherwise JSONL is marked promising (not proven) only if exact matches do not decrease, FP/FN do not increase, and median latency or total tokens improves on all measured pairs. No statistical significance or general superiority is claimed. The pilot must be repeated on a larger independent corpus before an adoption decision.
