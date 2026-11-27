@@ -86,6 +86,12 @@ flowchart LR
  F -->|Denied| X
 ```
 
+![Private VPC transport candidate — R10 BYOI](assets/26-byoi-private-vpc.svg)
+
+The figure preserves the chat architecture as a standalone SVG, with explicit local addresses and a dedicated Worker admission boundary. These are design targets, not deployment evidence. No public hostname or DNS migration is required by the proposed private-service topology.
+
+**Read-only account discovery (27 November):** Wrangler 4.158.0 recognized `vpc service list`, returned `No VPC services found`, and exited with status 0. The authenticated list operation is confirmed; permission to create services and working private connectivity are not yet established.
+
 The dedicated nine-call BYOI client adapter is proposed in [draft PR #10](https://github.com/edh-project/edh-adr-preflight/pull/10); the existing benchmark corpus and format protocol remain unchanged. No remote inference run has been demonstrated. Operational identifiers, domains and credentials are intentionally omitted from the public report.
 
 **Engineering lesson:** separate domain ownership, authoritative DNS, connectivity, workload identity and execution authority. Verify each boundary independently before provisioning, and keep the inference transport replaceable.
