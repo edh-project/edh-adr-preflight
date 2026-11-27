@@ -239,6 +239,17 @@ All six responses from the first schema probe failed with the old request shape.
 
 For the measured runtime (build 10621, commit `c1d0e7a00`), [the server implementation](https://github.com/ggml-org/llama.cpp/blob/c1d0e7a00/tools/server/server-common.cpp) reads the constrained schema from `response_format.json_schema.schema` when the type is `json_schema`. The original request placed the schema directly under `response_format`. Preflight now sends the nested wrapper and the probe reports the failure stage, HTTP status or JSON error location where applicable. The initial observations remain the baseline for a new two-case probe per model.
 
+#### Qwen 4B retest with the corrected request
+
+Run `qwen4b.SUGjub` used client revision `bb28d238660efe744ecce59c8f647f07abded298`. Both completions reported the requested alias and finished with `stop`. Both decoded as JSON. The complete request-and-validation path accepted **1 of 2** responses, compared with **0 of 2** for this model before the request fix.
+
+| Case | Accepted | Review observation |
+| --- | --- | --- |
+| `ADR-0002` (clean) | No | `review_validation` rejected an ungrounded evidence quote. The probe does not retain the rejected quote. |
+| `ADR-0003` (conflict) | Yes | The response identified production credentials and direct deployment without human approval. It also cited direct deployment again and flagged latency and rollback statements that do not directly contradict the accepted ADR. |
+
+The conflicting response shows why an exact source quote is a separate check from whether the finding follows from the text. Retests for Qwen 27B and Gemma 31B using the corrected request are pending.
+
 ## Prespecified interpretation
 
 Fixture runs always report HARNESS_ONLY_NOT_MEASURED: the stub is given gold labels to test the pipeline, not model ability. Timing and token metrics are absent, not zero. A live run is inconclusive by default. With at least three repetitions and all paired outputs valid, a JSONL quality regression is flagged if exact matches decrease or FP/FN increase. Otherwise JSONL is marked promising (not proven) only if exact matches do not decrease, FP/FN do not increase, and median latency or total tokens improves on all measured pairs. No statistical significance or general superiority is claimed. The pilot must be repeated on a larger independent corpus before an adoption decision.
