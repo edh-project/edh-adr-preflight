@@ -12,6 +12,11 @@ on:
         type: choice
         options: [original-six, adr-only]
         default: original-six
+      protocol:
+        description: Compare formats with fixed facts or run the A/B/C context ablation
+        type: choice
+        options: [format-only, context-abc]
+        default: format-only
       repeats:
         description: Repeats per case and context format
         type: choice
@@ -73,6 +78,7 @@ jobs:
         env:
           R10_SUITE: ${{ inputs.suite }}
           R10_REPEATS: ${{ inputs.repeats }}
+          R10_PROTOCOL: ${{ inputs.protocol }}
           R10_ACCEL: cpu
         run: bash experiments/r10/hosted.sh
       - name: Generate benchmark report and SVG charts
@@ -98,6 +104,7 @@ jobs:
         env:
           R10_SUITE: ${{ inputs.suite }}
           R10_REPEATS: ${{ inputs.repeats }}
+          R10_PROTOCOL: ${{ inputs.protocol }}
           R10_ACCEL: ${{ inputs.paid_hardware }}
         run: bash experiments/r10/hosted.sh
       - name: Generate benchmark report and SVG charts
@@ -123,6 +130,7 @@ jobs:
         env:
           R10_SUITE: ${{ inputs.suite }}
           R10_REPEATS: ${{ inputs.repeats }}
+          R10_PROTOCOL: ${{ inputs.protocol }}
           R10_EXTERNAL_APPROVED: ${{ vars.R10_EXTERNAL_APPROVED }}
           R10_URL: ${{ vars.R10_URL }}
           R10_MODEL: ${{ vars.R10_MODEL }}
@@ -132,7 +140,7 @@ jobs:
           test "$R10_EXTERNAL_APPROVED" = true && test -n "$R10_URL" && test -n "$R10_MODEL" || { echo 'Approved environment configuration required'; exit 1; }
           provider=openai-compatible
           if [ "$PROFILE" = anthropic ]; then provider=anthropic; fi
-          python3 experiments/r10/runner.py --output reports/r10 --suite "$R10_SUITE" --repeats "$R10_REPEATS" --provider "$provider" --profile "$PROFILE"
+          python3 experiments/r10/runner.py --output reports/r10 --suite "$R10_SUITE" --repeats "$R10_REPEATS" --protocol "$R10_PROTOCOL" --provider "$provider" --profile "$PROFILE"
       - name: Generate benchmark report and SVG charts
         if: always()
         run: python3 experiments/r10/report.py reports/r10 --mode external-api

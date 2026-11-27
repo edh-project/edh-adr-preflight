@@ -6,6 +6,18 @@ Default: public GitHub-hosted Ubuntu, exact frozen six-case dataset (three ADR a
 
 ## Manual dispatch
 
+Select **format-only** (default) to reproduce the existing Markdown / JSON / JSONL comparison on identical records. Select **context-abc** to use the following pilot protocol:
+
+| Arm | Records sent to the model | Input format |
+| --- | --- | --- |
+| A | Candidate records | Markdown |
+| B | Candidate and accepted constraint records | Markdown |
+| C | The same records as B | JSONL |
+
+The same model, prompt, response schema and decoding settings apply to all three arms. The runner retains gold labels locally. Each model response labels every candidate as a violation, compliant, or unresolved due to insufficient context. Primary metrics compare those decisions with gold at the candidate level. Exact match requires every candidate to be resolved correctly. Unresolved positives are included in end-to-end FN and also reported as positive abstentions. The report shows coverage alongside TP/FP/FN. Constraint reference accuracy is reported for B and C. Guessed or duplicate references are counted and discarded separately from the primary decision.
+
+One repeat is 18 inference calls for `original-six` or nine for `adr-only` in either protocol. The existing corpus is a development fixture. The A/B/C results require their own comparison because the output schema and scoring unit differ from the historic format-only run.
+
 Free mode needs no secrets or model download credentials. The workflow downloads the exact locally verified Unsloth GGUF revision and pinned llama.cpp Linux release, checks SHA-256, starts loopback inference and terminates with the job. No permanent hosting or model weights in Git.
 
 Paid mode requires explicit authorization, a configured organization-approved **GitHub-hosted** x64 larger runner label in repository variables R10_PAID_CPU_RUNNER or R10_PAID_GPU_RUNNER, and the r10-paid environment. Never configure self-hosted labels. CUDA 12.8 support and entitlement must be verified before dispatch. Use environment protection and spending limits.
@@ -23,6 +35,8 @@ Local execution with an already running loopback model:
 python3 experiments/r10/runner.py --output reports/r10-local --suite original-six --repeats 1
 ```
 Use a new output directory for each run. 
+
+Pass `--protocol context-abc` to run the context ablation on the same loopback model. The output keeps the protocol, visible record hashes and scoring code hash in its evidence files.
 
 ## Automated reporting
 
