@@ -29,3 +29,9 @@ Use a new output directory for each run.
 Each manual execution generates a Markdown Job Summary, `report.md`, three SVG charts and `SHA256SUMS` alongside the observed trial data. Metrics are checked against the frozen corpus and recomputed before reporting; invalid or incomplete runs remain failures. Original Mac baseline is shown only for the matching six-case, one-repeat protocol. Artifacts expire after seven days; selected reviewed synthetic evidence is preserved separately in the research directory. No automatic commits or write permissions.
 
 Future runs record selected CPU model, logical CPU count, total memory and runner image metadata where available; historical runs lack these details. These are environment descriptors, not measured peak utilization.
+
+## Dedicated Mac BYOI smoke (candidate)
+
+The `macbook-local` profile is restricted to `external-api`, `adr-only`, one repeat (nine calls), and model `qwen4b`. Use the dedicated `r10-macbook-local` GitHub environment, restricted to the main branch, with `R10_EXTERNAL_APPROVED=true`, an approved HTTPS `R10_URL` ending in `/v1`, and `R10_MODEL=qwen4b`. Configure environment secrets `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` and `R10_API_KEY` (the independent, short-lived gateway grant). Never use the administrative Cloudflare token or tunnel credential in Actions. Keep the tunnel inactive until Service Auth, Access JWT validation, bounded gateway and negative tests are verified. No credentials, endpoint names or secret values in the repository. The current gateway candidate accepts the existing openai-compatible request envelope and supplies its fixed local inference settings. Free and other provider profiles preserve their current request protocol. External hardware metadata describes the client runner, not the inference host. No live BYOI execution claimed.
+
+Offline unit tests: `python3 -m unittest discover -s experiments/r10 -p test_byoi_auth.py`.
