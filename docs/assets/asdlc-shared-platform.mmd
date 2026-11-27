@@ -1,0 +1,12 @@
+flowchart TD
+    A[Illustrative A-SDLC advisor roles] -. candidate reuse .-> P
+    subgraph P[Proposed shared platform services]
+      C[Context and knowledge - R01 R04 R10-A]
+      M[Model harness and routing - R03 R10-B]
+      G[Admission and execution - R08]
+      V[Verification and evidence - R02 R05 R09]
+      O[Quality cost observability - R06 R10-B]
+    end
+    I[Interoperability R07 and knowledge / IP governance] -. cross-cutting .-> P
+    classDef proposal fill:#f0faf8,stroke:#0f766e,color:#203449
+    class C,M,G,V,O proposal

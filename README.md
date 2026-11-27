@@ -2,6 +2,8 @@
 
 **Catch incomplete architecture decisions before implementation.** When a developer opens a pull request that changes an architecture decision record (ADR), GitHub Actions checks it using the rules from the base revision and saves a report. In the example below, the check rejects an ADR with a missing rollback plan and placeholder acceptance criteria before calling a model. The failed check is the expected result.
 
+> **For architects, staff engineers and platform owners:** [A-SDLC Platform Architecture & Research Overview](docs/asdlc-platform-overview.md) — where the demonstrated ADR preflight fits, which capabilities may be reusable across AI advisors, and what remains to be validated.
+
 [See the example PR](https://github.com/edh-project/edh-adr-preflight/pull/1) · [See the check result](https://github.com/edh-project/edh-adr-preflight/actions/runs/45569140916)
 
 In a [local synthetic matched-pair run](docs/evidence/adr-live-matched-pair.md), Qwen and Gemma found the same conflict after both ADRs passed structural checks. The compatible ADR also went to human review because the models raised other findings. Execution authorization is a separate decision. AWS and GCP are proposed delivery targets.

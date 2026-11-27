@@ -1,0 +1,13 @@
+flowchart TD
+    D[Discovery / Product Advisor] --> R[Requirements / Requirements Advisor]
+    R --> A[Architecture and ADR / Architecture Advisor]
+    A --> P[Implementation planning / Planning Advisor]
+    P --> C[Construction / Engineering Advisor]
+    C --> Q[Testing and verification / Quality Advisor]
+    Q --> S[Security and compliance / Security Advisor]
+    S --> L[Delivery and release / Delivery Advisor]
+    L --> O[Operations and feedback / Operations Advisor]
+    O -. feedback .-> D
+    A -. demonstrated reference domain .-> X[EDH ADR preflight]
+    classDef focus fill:#d9f3ec,stroke:#0f766e,color:#203449
+    class A,X focus
