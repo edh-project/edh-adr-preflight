@@ -58,6 +58,38 @@ flowchart TD
  D -->|Denied| X
 ```
 
+### 5.1 Infrastructure discovery — DNS control-plane assumption failed (27 November 2026)
+
+The initial public-hostname design assumed that the existing domain was an active Cloudflare DNS zone because the project already used Cloudflare compute services. That assumption failed during read-only provisioning preflight.
+
+| Check | Observed result |
+|---|---|
+| Temporary provisioning identity | API verification returned active |
+| Filtered Cloudflare zone lookup | Successful API response, zero visible matching zones |
+| Public authoritative NS lookup | Registrar-operated DNS, not Cloudflare authoritative DNS |
+| Provisioning preflight | Stopped before resource creation |
+| DNS mutation / public inference exposure | None in this preflight |
+
+The empty filtered lookup establishes that the token could not see the expected zone; it does not by itself prove global absence of the zone. The independent NS result confirms that the observed public delegation is not to Cloudflare. An active API token proves identity validity, not access to every required resource. The original DNS-dependent provisioning path is blocked.
+
+**Decision:** preserve existing authoritative DNS and avoid a domain-wide migration for a development benchmark. Evaluate a dedicated Worker endpoint with a private Workers VPC service binding and an outbound tunnel to the restricted loopback gateway. Account entitlement, API permissions, binding configuration, machine authentication, gateway limits and negative-path tests must be verified before activation. This alternative is a candidate, not an implemented transport. A pull-based EDH executor remains a separate architectural alternative.
+
+```mermaid
+flowchart LR
+ A[GitHub Actions] --> B[Dedicated Worker]
+ B --> C[Admission check]
+ C --> D[Private VPC service binding]
+ D --> E[Outbound tunnel]
+ E --> F[Restricted loopback gateway]
+ F --> G[Local model]
+ C -->|Denied| X[Reject]
+ F -->|Denied| X
+```
+
+The dedicated nine-call BYOI client adapter is proposed in [draft PR #10](https://github.com/edh-project/edh-adr-preflight/pull/10); the existing benchmark corpus and format protocol remain unchanged. No remote inference run has been demonstrated. Operational identifiers, domains and credentials are intentionally omitted from the public report.
+
+**Engineering lesson:** separate domain ownership, authoritative DNS, connectivity, workload identity and execution authority. Verify each boundary independently before provisioning, and keep the inference transport replaceable.
+
 ## 6. Economics and enterprise relevance
 
 Free public CI is a bounded repository experiment, not a persistent service or proof of zero total cost. The Mac was substantially faster on these calls; transport costs remain unknown. Paid runners and premium APIs have not been tested. Compare quality-adjusted cost per correctly resolved request, including hardware, operations, review, escalation and rework. The proposed 10–15% enterprise inference budget reduction remains a hypothesis. [Economic scenarios](github-inference-economics.md).
