@@ -248,7 +248,21 @@ Run `qwen4b.SUGjub` used client revision `bb28d238660efe744ecce59c8f647f07abded2
 | `ADR-0002` (clean) | No | `review_validation` rejected an ungrounded evidence quote. The probe does not retain the rejected quote. |
 | `ADR-0003` (conflict) | Yes | The response identified production credentials and direct deployment without human approval. It also cited direct deployment again and flagged latency and rollback statements that do not directly contradict the accepted ADR. |
 
-The conflicting response shows why an exact source quote is a separate check from whether the finding follows from the text. Retests for Qwen 27B and Gemma 31B using the corrected request are pending.
+The conflicting response shows why an exact source quote is a separate check from whether the finding follows from the text.
+
+#### Complete three-model retest with the corrected request
+
+All six completions reported the requested alias, ended with `stop`, and decoded as JSON. Five passed the full findings validator, compared with zero before the request fix.
+
+| Local model and run | Clean ADR | Conflicting ADR | Accepted |
+| --- | --- | --- | ---: |
+| Qwen 4B · `qwen4b.SUGjub` | Rejected: ungrounded quote | Accepted, four findings | 1/2 |
+| Qwen 27B · `qwen27b.zsc3FL` | Accepted, three warnings | Accepted, three findings | 2/2 |
+| Gemma 31B · `gemma31b.E584r9` | Accepted, two findings | Accepted, two findings | 2/2 |
+
+All three models identified the core violation in `ADR-0003`: the proposal gives the agent production credentials and allows direct deployment without human approval. The local validator checked the exact source quotes. The models sometimes repeated the same violation or inferred concerns beyond the cited policy.
+
+On `ADR-0002`, Qwen 27B and Gemma both flagged an underspecified patch handoff. The ADR permits a patch and requires human approval before the pipeline acquires credentials, but gives little detail about how the reviewed patch reaches the pipeline. This is a proposed improvement to the ADR. Gemma's critical ambiguity around read-only access does not establish a direct violation: an agent can return a patch without writing to the source repository. These two ADRs form a live contract check. The run has insufficient breadth for model ranking or precision and recall estimates.
 
 ## Prespecified interpretation
 
