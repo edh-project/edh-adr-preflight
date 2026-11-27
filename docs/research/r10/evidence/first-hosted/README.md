@@ -42,3 +42,5 @@ Hosted inference completed with all 18 valid responses; correctness was not perf
 [Machine-readable comparison and 36 minimized trial rows](evidence.json). The file includes original source SHA-256 hashes for both runs and per-trial expected/found record IDs, scores, latency and usage. Source files were retained locally; the public JSON is a minimized derivative, not the byte-identical source artifacts. Aggregates, gold pair counts, unique case/format coverage and dataset hashes were independently checked on the Mac after downloading the GitHub artifact. Original hosted artifact retention is seven days. No credentials, raw external provider bodies or internal addresses are included.
 
 Next: repeat the same hosted benchmark with automatic run reporting, then assess stability. Keep this first result immutable. Larger sample and independent holdout remain separate acceptance gates.
+
+**Follow-up:** [Second hosted run and repeatability analysis](../hosted-repeat/README.md).

@@ -27,3 +27,5 @@ Use a new output directory for each run.
 ## Automated reporting
 
 Each manual execution generates a Markdown Job Summary, `report.md`, three SVG charts and `SHA256SUMS` alongside the observed trial data. Metrics are checked against the frozen corpus and recomputed before reporting; invalid or incomplete runs remain failures. Original Mac baseline is shown only for the matching six-case, one-repeat protocol. Artifacts expire after seven days; selected reviewed synthetic evidence is preserved separately in the research directory. No automatic commits or write permissions.
+
+Future runs record selected CPU model, logical CPU count, total memory and runner image metadata where available; historical runs lack these details. These are environment descriptors, not measured peak utilization.

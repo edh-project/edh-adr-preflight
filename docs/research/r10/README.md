@@ -55,7 +55,7 @@ A 10–15% overall reduction is an exploratory business hypothesis: at the illus
 
 Preflight remains advisory. Critical risk, missing evidence, external disclosure restrictions and required human approval override cost optimization.
 
-**Executable research:** [R10-E01 benchmark harness and dispatch instructions](../../../experiments/r10/README.md) — first hosted feasibility run verified. [Permanent evidence report](evidence/first-hosted/README.md).
+**Executable research:** [R10-E01 benchmark harness and dispatch instructions](../../../experiments/r10/README.md) — two hosted feasibility runs verified. [Engineering Research Report](engineering-research-report.md) · [First evidence](evidence/first-hosted/README.md) · [Repeatability evidence](evidence/hosted-repeat/README.md).
 
 ## Abstract
 

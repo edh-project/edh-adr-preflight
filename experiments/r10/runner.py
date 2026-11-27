@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """R10-A format-only feasibility probe. Synthetic cases; no execution authority."""
-import json, hashlib, time, random, statistics, sys, pathlib, urllib.request, urllib.parse, os, platform, argparse
+import json, hashlib, time, random, statistics, sys, pathlib, urllib.request, urllib.parse, os, platform, argparse, subprocess
 parser=argparse.ArgumentParser()
 parser.add_argument('--output',required=True)
 parser.add_argument('--suite', choices=['original-six','adr-only'],default='original-six')
@@ -64,7 +64,30 @@ def get(path):
     with opener.open(base+path,timeout=5) as f:return json.load(f)
 model=get('/v1/models') if args.profile=='local' else {'data':[]}
 props=get('/props') if args.profile=='local' else {}
-meta={'mode':'live','dataset_sha256':sha(data),'script_sha256':sha(pathlib.Path(__file__).read_bytes()),'model_meta':model['data'],'n_ctx':props.get('default_generation_settings',{}).get('n_ctx'),'slots':props.get('total_slots'),'settings':settings,'system':system,'arms':arms,'repeats':args.repeats,'suite':args.suite,'profile':args.profile,'provider':args.provider,'schema_enforcement':'requested_not_verified','execution_authorized':False,'hardware':platform.machine()+' '+platform.system()}
+def hardware_metadata():
+    result={"architecture":platform.machine(),"os":platform.system(),"logical_cpus":os.cpu_count()}
+    if platform.system()=="Linux":
+        try:
+            for line in pathlib.Path("/proc/cpuinfo").read_text().splitlines():
+                if line.startswith("model name") and ":" in line:
+                    result["cpu_model"]=line.split(":",1)[1].strip()[:160]; break
+            for line in pathlib.Path("/proc/meminfo").read_text().splitlines():
+                if line.startswith("MemTotal:"):
+                    result["memory_total_kib"]=int(line.split()[1]); break
+        except (OSError,ValueError): pass
+    elif platform.system()=="Darwin":
+        for key,name in (("machdep.cpu.brand_string","cpu_model"),("hw.memsize","memory_total_bytes")):
+            try:
+                v=subprocess.check_output(["sysctl","-n",key],text=True,timeout=3).strip()
+                result[name]=int(v) if name.endswith("bytes") else v[:160]
+            except (OSError,ValueError,subprocess.SubprocessError): pass
+    if os.environ.get("GITHUB_ACTIONS")=="true":
+        result["runner_os"]=os.environ.get("RUNNER_OS")
+        result["runner_arch"]=os.environ.get("RUNNER_ARCH")
+        result["image_os"]=os.environ.get("ImageOS")
+        result["image_version"]=os.environ.get("ImageVersion")
+    return result
+meta={'hardware_metadata':hardware_metadata(),'mode':'live','dataset_sha256':sha(data),'script_sha256':sha(pathlib.Path(__file__).read_bytes()),'model_meta':model['data'],'n_ctx':props.get('default_generation_settings',{}).get('n_ctx'),'slots':props.get('total_slots'),'settings':settings,'system':system,'arms':arms,'repeats':args.repeats,'suite':args.suite,'profile':args.profile,'provider':args.provider,'schema_enforcement':'requested_not_verified','execution_authorized':False,'hardware':platform.machine()+' '+platform.system()}
 (root/'provenance.json').write_text(json.dumps(meta,indent=2)+'\n')
 schedule=[(c,a,rep) for c in cases for a in arms for rep in range(args.repeats)]
 random.Random(271126).shuffle(schedule)
