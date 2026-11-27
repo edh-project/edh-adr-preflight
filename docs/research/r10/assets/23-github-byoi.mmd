@@ -1,0 +1,10 @@
+flowchart LR
+ subgraph CI[GitHub Actions orchestration]
+ A[Authorized request] --> B[Trusted endpoint adapter]
+ E[Validate and retain minimized evidence]
+ end
+ subgraph HOST[Separately governed inference host]
+ C[Authenticate and admit] --> D[Run model]
+ end
+ B -->|Approved payload over HTTPS| C
+ D -->|Bounded response| E

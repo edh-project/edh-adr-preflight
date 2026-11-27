@@ -1,0 +1,6 @@
+flowchart TD
+ A[Authorized workflow dispatch] --> B[Restore pinned GGUF and verify hash]
+ B --> C[Start loopback llama.cpp]
+ C --> D[Run synthetic batch]
+ D --> E[Validate and upload minimized evidence]
+ E --> F[Terminate job]

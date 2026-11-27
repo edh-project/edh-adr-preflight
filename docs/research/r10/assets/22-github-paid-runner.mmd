@@ -1,0 +1,10 @@
+flowchart TD
+ A[Approved paid benchmark] --> B{Select eligible runner}
+ B --> C[ARM CPU]
+ B --> D[x64 CPU]
+ B --> E[T4 GPU]
+ C --> F[Load verified model and batch]
+ D --> F
+ E --> F
+ F --> G[Measure billed time quality and memory]
+ G --> H[Compute cost per correct validation]

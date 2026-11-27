@@ -20,7 +20,7 @@ The pilot is not an independent holdout, does not measure energy, and cannot est
 
 ## 2. GitHub infrastructure options
 
-Official rate-card snapshot as reviewed on 27 November 2026. Rates below are USD per billable minute, before included allowances, storage, tax or subscription fees. Public standard hosted runners are free for repository-related CI subject to GitHub terms and limits. Larger runners require an eligible Team/Enterprise Cloud organization and are not free for public repositories.
+Official rate-card snapshot as reviewed on 27 November 2026. Rates below are USD per billable minute, before included allowances, storage, tax or subscription fees. Public standard hosted runners are free for repository-related CI subject to GitHub terms and limits. Larger runners require an eligible Team/Enterprise Cloud organization and are metered even for public repositories; eligible included value may offset charges.
 
 | Runner | RAM / VRAM | Rate/min | Rate/hour | Candidate |
 | --- | --- | ---: | ---: | --- |
@@ -35,14 +35,48 @@ Official rate-card snapshot as reviewed on 27 November 2026. Rates below are USD
 
 Sources: [runner rates](https://docs.github.com/en/billing/reference/actions-runner-pricing), [standard specs](https://docs.github.com/en/actions/reference/runners/github-hosted-runners), [larger specs](https://docs.github.com/en/actions/reference/runners/larger-runners), [job limits](https://docs.github.com/en/actions/reference/limits). Confirm organization entitlements, labels and final pricing before use. GPU VRAM is not additive to RAM for a full GPU-offload fit. Larger model fit depends on actual quantization, architecture, KV cache, context and runtime allocations; file size alone is insufficient. Qwen 27B and Gemma 31B are reference-model candidates, not validated GitHub deployments.
 
+### 2.1 Three operating models at a glance
+
+![Option A — public standard runner, isolated in-job benchmark](assets/21-github-standard-runner.svg)
+
+*Figure A. Zero standard-runner compute charge for permitted public repository CI, not zero TCO. Qwen 4B Q5 fit and CPU throughput remain to be measured.*
+
+[Mermaid source](assets/21-github-standard-runner.mmd)
+
+![Option B — paid CPU/GPU runners and illustrative batch cost sensitivity](assets/22-github-paid-runner.svg)
+
+*Figure B. Published list rates before included value and other charges. Batch comparison uses synthetic latency from Section 3. Confirm actual eligibility and billing; no paid job is authorized.*
+
+[Mermaid source](assets/22-github-paid-runner.mmd)
+
+![Option C — reuse a separately hosted inference endpoint](assets/23-github-byoi.svg)
+
+*Figure C. Separate CI orchestration and inference-host trust/cost boundaries. BYOI adapter exists; integration with any particular enterprise endpoint is unverified.*
+
+[Mermaid source](assets/23-github-byoi.mmd)
+
+| Decision dimension | A — Public standard | B — Paid hosted | C — BYOI |
+| --- | --- | --- | --- |
+| Runner compute | USD 0 for eligible public CI | Metered, before included value | Depends on orchestration runner |
+| Inference compute | Within job | Within job | Separate endpoint |
+| Reproduction control | Pinned in-job environment; cold starts | Pinned in-job environment; hardware choice | Requires pinned endpoint identity and independent evidence |
+| Primary purpose | Public synthetic feasibility | Controlled hardware/quantization experiments | Reuse existing approved service |
+| Principal constraint | Ephemeral, CPU and storage limits | Entitlement, budget, ephemeral lifecycle | Ownership, disclosure, availability and cost allocation |
+| Readiness | Hosted benchmark not run | Not run; no paid authorization | Adapter implemented; target service not validated |
+
+All three are execution-environment alternatives for the same research, not different quality guarantees. Compare measured correct-resolution cost at comparable risk, not just runner charges.
+
 ## 3. Batch cost model
 
 For N validations per month, batch size B, startup time s seconds (download/cache restore, runtime initialization, model loading, tests and artifact overhead), mean incremental latency t seconds per validation, and rate r per billed minute:
 
-```text
-jobs = ceil(N / B)
-cost = sum over jobs [ r * ceil((s + actual_batch_size * t) / 60) ]
-```
+![Batch cost equations](assets/24-github-batch-cost-equations.svg)
+
+$
+J=\left\lceil\frac{N}{B}\right\rceil,\qquad C=r\sum_{j=1}^{J}\left\lceil\frac{s+b_jt}{60}\right\rceil
+$
+
+Here $b_j$ is the actual batch size of job $j$, including the final partial batch. [Editable LaTeX source](assets/github-batch-cost-equations.tex).
 
 Assume 10,000 validations/month, 100 per job, 180 seconds of setup/job, sequential calls, one attempt. No private allowances applied. Hypothetical t values are sensitivity inputs, not hosted measurements. The same latency across runner rows isolates price effects, not hardware performance.
 
