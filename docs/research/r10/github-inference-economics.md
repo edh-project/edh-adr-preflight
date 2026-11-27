@@ -14,7 +14,7 @@ Mac14,6; localhost qwen4b endpoint (reported 4,205,751,296 parameters, 3,239,901
 | JSON | 6/6 | 4/6 | 5 | 3 | 0 | 0.70625 | 190.5 | 215 |
 | JSONL | 6/6 | 3/6 | 5 | 4 | 0 | 0.814901 | 195.5 | 225 |
 
-Dataset SHA-256: `5231e42696e265c6b067ef3c37746c73732286473a7ba192fd8e59974026ad92`. Probe SHA-256: `37bd80aa148a7b3ce3cf8459d7e7cad0456de23f61c3ef487faf63535d088440`. Local summary read back after completion. The current endpoint identity was verified via its API, not a fresh hash of the loaded model file. Raw evidence and script remain local; this table is a summary, not a fully published reproduction package.
+Dataset SHA-256: `5231e42696e265c6b067ef3c37746c73732286473a7ba192fd8e59974026ad92`. Probe SHA-256: `37bd80aa148a7b3ce3cf8459d7e7cad0456de23f61c3ef487faf63535d088440`. Local summary read back after completion. The current endpoint identity was verified via its API, not a fresh hash of the loaded model file. The original source files remain local; the public [harness](../../../experiments/r10/README.md) and [minimized evidence for both runs](evidence/first-hosted/README.md) are available.
 
 The pilot is not an independent holdout, does not measure energy, and cannot establish format superiority or estimate GitHub-hosted latency. False positives remain substantial. No preflight authority or production readiness is implied.
 
@@ -109,4 +109,4 @@ GitHub Models' former inference API was retired on 30 July 2026 ([official notic
 
 Run a manually dispatched, time-bounded standard public Ubuntu CPU benchmark for the repository's synthetic research workload only. Pin exact model artifact and llama.cpp revision; compare against local configuration, record setup/load/inference wall time, memory, tokens, quality, runner image and hardware. Capture both cold and warm runs. No paid runner or external endpoint exposure authorized by this note. A larger-model benchmark requires verified artifacts and separate resource/entitlement assessment.
 
-**Status:** local feasibility run completed; GitHub hosted inference not yet executed; costs hypothetical. Do not use this document to claim a measured saving or select production infrastructure.
+**Status:** local and first GitHub-hosted feasibility runs completed; see [verified comparative evidence](evidence/first-hosted/README.md). Cost scenarios remain hypothetical. Do not use this document to claim a measured saving or select production infrastructure.

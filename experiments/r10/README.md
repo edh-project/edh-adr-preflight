@@ -2,7 +2,7 @@
 
 Development feasibility only. [R10 research](../../docs/research/r10/README.md) · [Manual workflow](../../.github/workflows/r10-benchmark.yml)
 
-Default: public GitHub-hosted Ubuntu, exact frozen six-case dataset (three ADR and three code cases), three formats, one repeat = 18 calls. ADR-only selects nine calls. The original probe and aggregate baseline are preserved unchanged for provenance. The adapted runner uses the same prompt, records, randomized schedule and scoring; hosted runtime differs from the original Mac build. No fresh hosted run is claimed.
+Default: public GitHub-hosted Ubuntu, exact frozen six-case dataset (three ADR and three code cases), three formats, one repeat = 18 calls. ADR-only selects nine calls. The original probe and aggregate baseline are preserved unchanged for provenance. The adapted runner uses the same prompt, records, randomized schedule and scoring; hosted runtime differs from the original Mac build. [First hosted run evidence](../../docs/research/r10/evidence/first-hosted/README.md) is published.
 
 ## Manual dispatch
 
@@ -23,3 +23,7 @@ Local execution with an already running loopback model:
 python3 experiments/r10/runner.py --output reports/r10-local --suite original-six --repeats 1
 ```
 Use a new output directory for each run. 
+
+## Automated reporting
+
+Each manual execution generates a Markdown Job Summary, `report.md`, three SVG charts and `SHA256SUMS` alongside the observed trial data. Metrics are checked against the frozen corpus and recomputed before reporting; invalid or incomplete runs remain failures. Original Mac baseline is shown only for the matching six-case, one-repeat protocol. Artifacts expire after seven days; selected reviewed synthetic evidence is preserved separately in the research directory. No automatic commits or write permissions.

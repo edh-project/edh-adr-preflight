@@ -75,6 +75,9 @@ jobs:
           R10_REPEATS: ${{ inputs.repeats }}
           R10_ACCEL: cpu
         run: bash experiments/r10/hosted.sh
+      - name: Generate benchmark report and SVG charts
+        if: always()
+        run: python3 experiments/r10/report.py reports/r10 --mode github-free
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -97,6 +100,9 @@ jobs:
           R10_REPEATS: ${{ inputs.repeats }}
           R10_ACCEL: ${{ inputs.paid_hardware }}
         run: bash experiments/r10/hosted.sh
+      - name: Generate benchmark report and SVG charts
+        if: always()
+        run: python3 experiments/r10/report.py reports/r10 --mode github-paid
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -127,6 +133,9 @@ jobs:
           provider=openai-compatible
           if [ "$PROFILE" = anthropic ]; then provider=anthropic; fi
           python3 experiments/r10/runner.py --output reports/r10 --suite "$R10_SUITE" --repeats "$R10_REPEATS" --provider "$provider" --profile "$PROFILE"
+      - name: Generate benchmark report and SVG charts
+        if: always()
+        run: python3 experiments/r10/report.py reports/r10 --mode external-api
       - uses: actions/upload-artifact@v4
         if: always()
         with:

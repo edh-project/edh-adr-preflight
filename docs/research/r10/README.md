@@ -55,7 +55,7 @@ A 10–15% overall reduction is an exploratory business hypothesis: at the illus
 
 Preflight remains advisory. Critical risk, missing evidence, external disclosure restrictions and required human approval override cost optimization.
 
-**Executable research:** [R10-E01 benchmark harness and dispatch instructions](../../../experiments/r10/README.md) — implementation candidate; hosted execution not yet verified.
+**Executable research:** [R10-E01 benchmark harness and dispatch instructions](../../../experiments/r10/README.md) — first hosted feasibility run verified. [Permanent evidence report](evidence/first-hosted/README.md).
 
 ## Abstract
 
@@ -239,7 +239,7 @@ Freeze prompts, context versions, model hashes, runtime, seeds and settings. Mat
 
 ## 8. Enterprise inference economics
 
-[GitHub-hosted inference economics and feasibility](github-inference-economics.md) — measured local pilot summary, dated GitHub runner rates, batch-cost sensitivity and proposed hosted benchmark.
+[GitHub-hosted inference economics and feasibility](github-inference-economics.md) — measured local pilot summary, dated GitHub runner rates, batch-cost sensitivity and [first hosted evidence](evidence/first-hosted/README.md).
 
 Compare cost per correctly resolved validation at equivalent quality, risk and service levels, not only cost per token. Example workload: 10,000 requests/month, 8,000 uncached input and 1,000 billed output tokens per cloud call.
 
