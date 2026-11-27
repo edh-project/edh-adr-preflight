@@ -237,6 +237,8 @@ Freeze prompts, context versions, model hashes, runtime, seeds and settings. Mat
 
 ## 8. Enterprise inference economics
 
+[GitHub-hosted inference economics and feasibility](github-inference-economics.md) — measured local pilot summary, dated GitHub runner rates, batch-cost sensitivity and proposed hosted benchmark.
+
 Compare cost per correctly resolved validation at equivalent quality, risk and service levels, not only cost per token. Example workload: 10,000 requests/month, 8,000 uncached input and 1,000 billed output tokens per cloud call.
 
 | Draft cloud pricing snapshot | Input USD / 1M | Output USD / 1M | Example monthly USD |
