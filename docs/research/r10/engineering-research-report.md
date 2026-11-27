@@ -92,6 +92,8 @@ The figure preserves the chat architecture as a standalone SVG, with explicit lo
 
 **Read-only account discovery (27 November):** Wrangler 4.158.0 recognized `vpc service list`, returned `No VPC services found`, and exited with status 0. The authenticated list operation is confirmed; permission to create services and working private connectivity are not yet established.
 
+**Provisioning evidence (27 November, 15:37 local time):** Wrangler successfully created a dedicated Cloudflare tunnel and independently listed it as inactive. A dedicated HTTP VPC service targeting the tunnel's localhost port 8093 was then created (exit status 0) and independently verified by listing. This establishes account-level service creation capability and the existence of both control-plane resources. Connector activation, Worker binding, authentication, private data-plane reachability and inference remain unverified. No DNS changes or public inference exposure were made. Resource identifiers are omitted from this public report.
+
 The dedicated nine-call BYOI client adapter is proposed in [draft PR #10](https://github.com/edh-project/edh-adr-preflight/pull/10); the existing benchmark corpus and format protocol remain unchanged. No remote inference run has been demonstrated. Operational identifiers, domains and credentials are intentionally omitted from the public report.
 
 **Engineering lesson:** separate domain ownership, authoritative DNS, connectivity, workload identity and execution authority. Verify each boundary independently before provisioning, and keep the inference transport replaceable.
