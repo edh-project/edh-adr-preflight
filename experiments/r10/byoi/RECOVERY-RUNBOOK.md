@@ -83,3 +83,41 @@ CLOUDFLARE_ACCOUNT_ID=37cfceb9bfb0fa822746c398070e8d1e npx --yes wrangler@4 depl
 ```
 
 **Remaining gap for truly disk-independent recovery:** gateway source and exact llama.cpp launch flags/model GGUF are not established as backed up in this repository; copy to a private recoverable store with appropriate permissions, document checksum and restore procedure. Public repo/wiki must not contain live tokens.
+
+## Corrected Worker staging procedure (verified on Mac, 2026-11-28)
+
+The first staging attempt failed **only** because `node --check worker.mjs.next` rejects unknown `.next` extension in Node 24. Use `node --input-type=module --check < "$STAGED"` to check module syntax through stdin. User confirmed:
+
+```text
+[OK] Updated Worker staged and validated
+52:    const gateName = env.R10_GATE_ID;
+88:      const id = env.R10_NONCES.idFromName(gateName);
+```
+
+The following **stages and validates but does not deploy** the updated Worker. It requires the existing temporary deployment checkout; for disk-loss recovery, clone the repository and work from the cloned `experiments/r10/byoi` instead.
+
+```bash
+(
+  TMP="/var/folders/p3/ydjk_m194wn_ffc9zhkqm1xh0000gn/T/edh-r10-deploy.YnMwJm"
+  DEST="$TMP/experiments/r10/byoi/worker.mjs"
+  STAGED="$DEST.next"
+  if [ ! -f "$DEST" ]; then
+    printf '[FAIL] Existing Worker file not found\\n'
+  elif gh api -H "Accept: application/vnd.github.raw+json" \\
+    "repos/edh-project/edh-adr-preflight/contents/experiments/r10/byoi/worker.mjs?ref=experiment/r10-byoi-access-smoke" > "$STAGED"; then
+    if node --input-type=module --check < "$STAGED"; then
+      mv "$STAGED" "$DEST"
+      printf '[OK] Updated Worker staged and validated\\n'
+      grep -n 'R10_GATE_ID\\|idFromName(gateName)' "$DEST"
+    else
+      printf '[FAIL] JavaScript syntax validation failed\\n'
+      rm -f "$STAGED"
+    fi
+  else
+    printf '[FAIL] GitHub download failed\\n'
+    rm -f "$STAGED"
+  fi
+)
+```
+
+**Checkpoint:** source staging and syntax validation confirmed; deployment of gate isolation **not yet confirmed**. Do not mistake the successful staging output for a Cloudflare deployment.
