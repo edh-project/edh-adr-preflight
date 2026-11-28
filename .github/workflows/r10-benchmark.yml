@@ -125,6 +125,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Offline BYOI regression (no inference credentials in test step)
+        run: |
+          python3 -m unittest discover -s experiments/r10 -p test_byoi_auth.py
+          node --test experiments/r10/byoi/worker.test.mjs
       - name: Run approved external benchmark
         env:
           R10_SUITE: ${{ inputs.suite }}
@@ -133,12 +137,11 @@ jobs:
           R10_URL: ${{ vars.R10_URL }}
           R10_MODEL: ${{ vars.R10_MODEL }}
           R10_API_KEY: ${{ secrets.R10_API_KEY }}
-          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
-          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+          CF_ACCESS_CLIENT_ID: ${{ inputs.external_profile == 'macbook-local' && secrets.CF_ACCESS_CLIENT_ID || '' }}
+          CF_ACCESS_CLIENT_SECRET: ${{ inputs.external_profile == 'macbook-local' && secrets.CF_ACCESS_CLIENT_SECRET || '' }}
           PROFILE: ${{ inputs.external_profile }}
         run: |
           test "$R10_EXTERNAL_APPROVED" = true && test -n "$R10_URL" && test -n "$R10_MODEL" || { echo 'Approved environment configuration required'; exit 1; }
-          python3 -m unittest discover -s experiments/r10 -p test_byoi_auth.py || exit 1
           provider=openai-compatible
           if [ "$PROFILE" = anthropic ]; then provider=anthropic; fi
           python3 experiments/r10/runner.py --output reports/r10 --suite "$R10_SUITE" --repeats "$R10_REPEATS" --provider "$provider" --profile "$PROFILE"
