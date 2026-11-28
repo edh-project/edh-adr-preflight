@@ -25,7 +25,7 @@ on:
       external_profile:
         description: Approved external service profile (ignored in free mode)
         type: choice
-        options: [external-1, external-2, external-3, external-4, openai, anthropic]
+        options: [external-1, external-2, external-3, external-4, openai, anthropic, macbook-local]
         default: external-1
       authorize_nonfree:
         description: Explicitly authorize potentially billed runner/API calls and synthetic payload disclosure
@@ -38,7 +38,14 @@ concurrency:
   cancel-in-progress: false
 jobs:
   gate:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.ref == 'refs/heads/experiment/r10-byoi-access-smoke' &&
+       inputs.mode == 'external-api' &&
+       inputs.external_profile == 'macbook-local' &&
+       inputs.suite == 'adr-only' &&
+       inputs.repeats == '1' &&
+       inputs.authorize_nonfree)
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
@@ -50,11 +57,17 @@ jobs:
           CPU_LABEL: ${{ vars.R10_PAID_CPU_RUNNER }}
           GPU_LABEL: ${{ vars.R10_PAID_GPU_RUNNER }}
           HARDWARE: ${{ inputs.paid_hardware }}
+          PROFILE: ${{ inputs.external_profile }}
+          SUITE: ${{ inputs.suite }}
+          REPEATS: ${{ inputs.repeats }}
         run: |
           if [ "$MODE" = github-free ]; then
             test "$PUBLIC" = true || { echo 'Free mode requires public repository'; exit 1; }
           else
             test "$APPROVED" = true || { echo 'Explicit authorization required'; exit 1; }
+          fi
+          if [ "$MODE" = external-api ] && [ "$PROFILE" = macbook-local ]; then
+            test "$SUITE" = adr-only && test "$REPEATS" = 1 || { echo 'BYOI smoke requires adr-only and one repeat'; exit 1; }
           fi
           if [ "$MODE" = github-paid ]; then
             if [ "$HARDWARE" = cpu ]; then label="$CPU_LABEL"; else label="$GPU_LABEL"; fi
@@ -119,6 +132,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Offline BYOI regression (no inference credentials in test step)
+        run: |
+          python3 -m unittest discover -s experiments/r10 -p test_byoi_auth.py
+          node --test experiments/r10/byoi/worker.test.mjs
       - name: Run approved external benchmark
         env:
           R10_SUITE: ${{ inputs.suite }}
@@ -127,6 +144,7 @@ jobs:
           R10_URL: ${{ vars.R10_URL }}
           R10_MODEL: ${{ vars.R10_MODEL }}
           R10_API_KEY: ${{ secrets.R10_API_KEY }}
+          R10_HMAC_KEY: ${{ inputs.external_profile == 'macbook-local' && secrets.R10_HMAC_KEY || '' }}
           PROFILE: ${{ inputs.external_profile }}
         run: |
           test "$R10_EXTERNAL_APPROVED" = true && test -n "$R10_URL" && test -n "$R10_MODEL" || { echo 'Approved environment configuration required'; exit 1; }

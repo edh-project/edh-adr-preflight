@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """R10-A format-only feasibility probe. Synthetic cases; no execution authority."""
 import json, hashlib, time, random, statistics, sys, pathlib, urllib.request, urllib.parse, os, platform, argparse, subprocess
+from byoi_auth import access_headers
 parser=argparse.ArgumentParser()
 parser.add_argument('--output',required=True)
 parser.add_argument('--suite', choices=['original-six','adr-only'],default='original-six')
@@ -42,6 +43,7 @@ settings['model']=os.environ.get('R10_MODEL','qwen4b')
 if not settings['model']: raise ValueError('Missing model ID')
 if args.provider!='llama':
     for k in ('seed','cache_prompt','chat_template_kwargs'): settings.pop(k,None)
+byoi_headers=access_headers(args.profile,args.provider,base,args.suite,args.repeats,settings['model'],os.environ)
 def request_model(inp):
     headers={'Content-Type':'application/json'}
     if args.provider=='anthropic':
@@ -53,7 +55,9 @@ def request_model(inp):
         if key: headers['Authorization']='Bearer '+key
         payload={**settings,'messages':[{'role':'system','content':system},{'role':'user','content':inp}]}
         path='/v1/chat/completions' if args.profile=='local' else '/chat/completions'
-    req=urllib.request.Request(base+path,data=compact(payload).encode(),headers=headers)
+    encoded=compact(payload).encode()
+    headers.update(access_headers(args.profile,args.provider,base,args.suite,args.repeats,settings['model'],os.environ,encoded))
+    req=urllib.request.Request(base+path,data=encoded,headers=headers)
     with opener.open(req,timeout=90) as f: raw=json.load(f)
     if args.provider=='anthropic':
         usage=raw.get('usage',{})

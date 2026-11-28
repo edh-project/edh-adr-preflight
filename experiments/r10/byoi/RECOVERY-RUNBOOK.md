@@ -1,0 +1,199 @@
+# EDH R10 BYOI — Disaster Recovery and Operator Runbook
+
+**Updated:** 2026-11-28. **Status:** partially deployed, NOT end-to-end verified. This file intentionally contains **no credentials**. It is the durable handoff for a replacement Mac, lost disk, or lost ChatGPT session. Do not treat historical timestamps, paths, or statuses as current.
+
+## Architecture and resource inventory
+
+```text
+GitHub Actions (r10-benchmark.yml; environment r10-macbook-local)
+  POST HTTPS /v1/chat/completions, HMAC v2 + Bearer
+    -> Cloudflare Worker edh-r10-byoi-worker
+       -> Durable Object R10NonceGate (nonce replay and 9-admission quota)
+       -> PRIVATE_GATEWAY VPC Service (HTTP localhost:8093)
+       -> existing Cloudflare Tunnel edh-r10-byoi-private
+       -> Mac gateway.py bound 127.0.0.1:8093
+       -> local llama.cpp Qwen3.5-4B bound 127.0.0.1:8092
+```
+
+- Repository: https://github.com/edh-project/edh-adr-preflight
+- PR #10 branch: `experiment/r10-byoi-access-smoke`.
+- Worker: `edh-r10-byoi-worker`; Cloudflare account ID `37cfceb9bfb0fa822746c398070e8d1e`.
+- Tunnel: `edh-r10-byoi-private`; ID `a5798f68-ff35-414c-b121-f4e99bc8ffcd`. Existing remotely managed tunnel; **do not recreate or rotate token by default**.
+- VPC Service: `edh-r10-byoi-gateway`, ID `01a21d39-e39c-75a0-9bea-a82ad41879af`, HTTP host `localhost`, port `8093`. Worker binding `PRIVATE_GATEWAY`.
+- Durable Object class `R10NonceGate`, binding `R10_NONCES`, migration tag `r10-nonce-v1`.
+- Diagnostic gate ID `r10-byoi-diagnostic-v1`; benchmark gate ID `r10-byoi-one-shot`. Both are persistent and independently capped at nine *admitted* requests. Changing the ID does not reset the counter.
+- GitHub environment: `r10-macbook-local`; experimental branch allowed in deployment branch policy (verified manually 2026-11-28).
+- Last *verified live* Worker version before gate-isolation redeploy: `d4c66239-ab24-475d-8950-302de9695d98`, 2026-11-28T17:36Z. Gate isolation code committed to PR #10 but NOT YET DEPLOYED at this checkpoint.
+- Cloudflare Workers production and preview workers.dev URLs were OFF, no custom domain/route as last verified. Tunnel has one configured route, which does **not** mean Worker has public HTTPS ingress.
+- Local machine was Mac M2 Max, macOS 14, Homebrew, Python 3, Node, gh CLI, Wrangler via `npx --yes wrangler@4`, `cloudflared 2026.11.2`.
+- Qwen3.5-4B GGUF: `Qwen3.5-4B-UD-Q5_K_XL.gguf`; historical SHA-256 `b4c36a8e14a80c21bcab5a067ce342b2e70e28f60b4aa95ad12203fa17b87426`. Verify model file independently after recovery. llama.cpp server uses port 8092; exact original llama-server flags/model path need to be recovered from machine-specific configuration or reconstructed and tested, **not guessed**.
+- Historical gateway directory (NOT backed up by this repo): `~/WORK/_edh/edh-4b-jsonl-pilot/gateway.DvjNfX/`, with `gateway.py`, `dataset.json`, `test_gateway.py`. **Back up these three files to an authorized private, encrypted location before disk loss.** The repo contains R10 dataset and runner, but do not assume it contains identical gateway implementation.
+- Temporary deployment directory `/var/folders/p3/ydjk_m194wn_ffc9zhkqm1xh0000gn/T/edh-r10-deploy.YnMwJm` was ephemeral. **Never depend on it for disaster recovery.** Clone repository afresh.
+
+## Credentials: source of truth and lost-disk recovery
+
+| Name | Location | Handling |
+|---|---|---|
+| `R10_HMAC_KEY` | Cloudflare Worker secret; GitHub environment secret; historical local file `~/.config/edh/r10/hmac.key` (0600) | 96 ASCII hex characters generated once via `openssl rand -hex 48`. Neither Cloudflare nor GitHub returns existing secret values. If local file is lost, **rotate** to a fresh shared key in BOTH locations; do not pretend to recover old value. |
+| `R10_API_KEY` | GitHub environment secret | Same bearer value as local gateway `R10_GATEWAY_TOKEN`; no need to put bearer secret in Worker. If lost, rotate and restart gateway and replace GitHub secret. |
+| `R10_GATEWAY_TOKEN` | Mac gateway process environment (historically recoverable via `ps eww` while process was running) | Never print or paste into chat. Process environment is **not a backup** and disappears on disk loss/restart. Recover from secure store or rotate. |
+| Tunnel connector token | Cloudflare Zero Trust Dashboard, existing Tunnel → connector setup / Add replica | Treat as secret. Do not paste into shell history or repo. Use hidden prompt and `cloudflared tunnel run --token "$TUNNEL_TOKEN"`. Do not rotate unless necessary. |
+| `R10_NOT_AFTER` | Cloudflare Worker secret | UTC ISO deadline. Historical value `2026-11-28T18:36:02.257574Z` **expires**; configure a new short future deadline immediately before controlled testing. |
+| `R10_GATE_ID` | Cloudflare Worker secret or variable | Must be explicitly set to diagnostic or benchmark value after isolation deployment; missing/unknown fails closed. |
+| `R10_EXTERNAL_APPROVED`, `R10_MODEL`, `R10_URL` | GitHub environment variables | `true`, `qwen4b`, and `https://<approved-Worker-hostname>/v1` respectively. **Hostname not yet provisioned/verified.** |
+
+**Security:** Secrets must not enter public commits, issues, Wiki pages, screenshots, command-line arguments visible in process lists, or terminal history. A locally saved secret with `0600` permissions is still lost when the disk is lost: back it up in an encrypted secrets manager with recovery access, or be prepared to rotate. `wrangler secret list --name edh-r10-byoi-worker` shows names only.
+
+## Recovery from a blank Mac (do not rely on four terminals)
+
+1. Install prerequisites: Homebrew (if needed), `cloudflared`, Python 3, Node, `gh`; authenticate `gh auth login` and `npx --yes wrangler@4 login`. Verify account/permissions. On macOS 14, Homebrew built cloudflared and Go from source; install may take minutes and may prompt.
+2. Clone `edh-project/edh-adr-preflight` and checkout `experiment/r10-byoi-access-smoke`; inspect PR #10 and latest commit before deploying. `cd experiments/r10/byoi` for Wrangler. Never trust stale temporary paths.
+3. Restore the private gateway files, GGUF and exact llama.cpp configuration from independent backups. Verify checksums and tests. Start llama.cpp on `127.0.0.1:8092` using verified model/settings. Check `curl --noproxy '*' -sS -o /dev/null -w '%{http_code}\n' http://127.0.0.1:8092/v1/models` returns 200.
+4. Restore/rotate `R10_GATEWAY_TOKEN` securely, then start gateway with token **in its process environment**: `python3 gateway.py --port 8093 --ttl 900 --limit 18`. It blocks the terminal by design; use a dedicated tab/session or supervised service, **not** an arbitrary shell-killing command. GET `/v1/chat/completions` previously returned HTTP 405 (expected for unsupported method), showing port is listening; does NOT prove inference. Unit tests: `python3 -m unittest test_gateway.py -v` (historically 9/9 PASS).
+5. Start **existing** remotely managed tunnel via Cloudflare Dashboard's connector token. `cloudflared tunnel list` requires `cert.pem` and failed even when token-based tunnel worked; **do not infer the tunnel is missing**. On a secure terminal, `read -rs "TUNNEL_TOKEN?Tunnel token: "; printf '\n'; cloudflared tunnel run --token "$TUNNEL_TOKEN"; unset TUNNEL_TOKEN` (the last command runs only after the foreground tunnel exits; use separate tab). Four `Registered tunnel connection` logs were observed on 2026-11-28; this proves connector ↔ Cloudflare, NOT VPC ↔ gateway.
+6. Inspect `worker.mjs` and `wrangler.jsonc`; run `node --test worker.test.mjs` and `python3 -m unittest discover -s ../ -p test_byoi_auth.py -v` from the BYOI folder (or use repository root commands below). Deploy **once** after verified source: `CLOUDFLARE_ACCOUNT_ID=37cfceb9bfb0fa822746c398070e8d1e npx --yes wrangler@4 deploy` from `experiments/r10/byoi`. `wrangler versions upload` failed with pending DO migration; `wrangler deploy` succeeded. Verify `wrangler deployments list --name edh-r10-byoi-worker`. Deploying a Worker does **not** necessarily create public ingress.
+7. Provision/rotate Worker HMAC secret and GitHub HMAC secret from the **same** local secure key; do not create separate keys. Example from `experiments/r10/byoi`: `npx --yes wrangler@4 secret put R10_HMAC_KEY < "$HOME/.config/edh/r10/hmac.key"`; `gh secret set R10_HMAC_KEY --repo edh-project/edh-adr-preflight --env r10-macbook-local < "$HOME/.config/edh/r10/hmac.key"`. Set GitHub bearer via `printf '%s' "$R10_GATEWAY_TOKEN" | gh secret set R10_API_KEY --repo edh-project/edh-adr-preflight --env r10-macbook-local` **only from the shell where token exists**. Never echo values.
+8. Set Worker `R10_GATE_ID=r10-byoi-diagnostic-v1` (using `wrangler secret put` with stdin), and short UTC `R10_NOT_AFTER` before diagnostic admission. Worker must fail closed until these are set. Reconfigure after expiry; never assume an old deadline is valid.
+9. **Ingress is a separate approval step:** current `workers_dev=false`; no Worker public route. Choose one temporary HTTPS hostname routed exclusively to this Worker, with HMAC v2, strict deadline and bounded quotas. Verify route/host and account billing implications. Do not publish localhost/model port or a generic tunnel route. Without reachable Worker HTTPS endpoint, GitHub-hosted Actions cannot run E2E.
+10. Perform negative tests first (unsigned 403, invalid path 404, invalid method 405, expired 503); these should not consume DO quota. Then a **single** signed diagnostic request to exercise actual DO and VPC, followed by exact nonce replay expecting 409 (no extra admission). Record status and sanitized traces. A signed request reserves admission **before** gateway fetch: gateway errors still consume diagnostic quota. Do not use the benchmark gate during diagnostics.
+11. Before benchmark, change Worker `R10_GATE_ID=r10-byoi-one-shot` and verify fresh, unconsumed benchmark gate; renew deadline, restart gateway if its TTL expired. Configure GitHub environment vars: `R10_EXTERNAL_APPROVED=true`, `R10_MODEL=qwen4b`, `R10_URL=https://<Worker-host>/v1`. Workflow inputs: `mode=external-api`, `external_profile=macbook-local`, `suite=adr-only`, `repeats=1`, `authorize_nonfree=true`; branch `experiment/r10-byoi-access-smoke`. **Verify workflow_dispatch availability on default branch before running**; environment branch allowlist alone does not guarantee dispatch. `runner.py` writes `trials.jsonl`, `comparison.json`, `provenance.json` under `reports/r10`; artifact upload step must be verified. Runner may exit nonzero if any result invalid; this is experimental evidence, not necessarily transport failure.
+12. After experiment, disable temporary Worker ingress, stop tunnel and gateway gracefully, expire/revoke credentials and verify no public access. Archive sanitized evidence and commit a status update; do not commit credentials.
+
+## Verified timeline / outstanding work
+
+- 2026-11-28: Qwen 8092 `GET /v1/models` HTTP 200. Gateway unit tests 9/9 PASS and live GET port 8093 HTTP 405.
+- `cloudflared 2026.11.2` installed; existing Tunnel established four QUIC connections; connectivity pre-check DNS/UDP/TCP/API PASS.
+- Cloudflare Worker deployed HMAC v2 + DO binding + VPC binding, active version `d4c66239-ab24-475d-8950-302de9695d98`. `wrangler secret list` initially `[]`; then HMAC key and deadline uploaded successfully.
+- GitHub environment secrets `R10_HMAC_KEY` and `R10_API_KEY` uploaded successfully; no values in repository.
+- PR #10 updated with gate isolation and regression tests; **not yet deployed**.
+- A staging command failed: `node --check worker.mjs.next` on Node v24 yielded `ERR_UNKNOWN_FILE_EXTENSION`. This was a **staging filename bug**, not a Worker syntax failure. Correct validation: `node --check worker.mjs` for actual .mjs, or `node --input-type=module --check < worker.mjs.next` for staged file via stdin. Do not deploy until staged source is verified.
+- Not yet verified: actual DO runtime persistence, Worker public ingress, VPC Service → Mac gateway, successful inference through tunnel, GitHub workflow dispatch and nine-trial artifact.
+- **Operational caveat:** gateway `--ttl 900` expires 15 minutes after startup; start/restart it immediately before tests. Model may remain running. Historical `R10_NOT_AFTER` also expires.
+- **Do not run `set -e`, `exec`, or commands that replace/terminate interactive shell.** Guard diagnostics separately from fatal failures. Do not assume archives extracted.
+
+## Quick commands from repository root
+
+```bash
+python3 -m unittest discover -s experiments/r10 -p test_byoi_auth.py -v
+node --test experiments/r10/byoi/worker.test.mjs
+node --check experiments/r10/byoi/worker.mjs
+gh secret list --repo edh-project/edh-adr-preflight --env r10-macbook-local
+CLOUDFLARE_ACCOUNT_ID=37cfceb9bfb0fa822746c398070e8d1e npx --yes wrangler@4 secret list --name edh-r10-byoi-worker
+CLOUDFLARE_ACCOUNT_ID=37cfceb9bfb0fa822746c398070e8d1e npx --yes wrangler@4 deployments list --name edh-r10-byoi-worker
+```
+
+**Remaining gap for truly disk-independent recovery:** gateway source and exact llama.cpp launch flags/model GGUF are not established as backed up in this repository; copy to a private recoverable store with appropriate permissions, document checksum and restore procedure. Public repo/wiki must not contain live tokens.
+
+## Corrected Worker staging procedure (verified on Mac, 2026-11-28)
+
+The first staging attempt failed **only** because `node --check worker.mjs.next` rejects unknown `.next` extension in Node 24. Use `node --input-type=module --check < "$STAGED"` to check module syntax through stdin. User confirmed:
+
+```text
+[OK] Updated Worker staged and validated
+52:    const gateName = env.R10_GATE_ID;
+88:      const id = env.R10_NONCES.idFromName(gateName);
+```
+
+The following **stages and validates but does not deploy** the updated Worker. It requires the existing temporary deployment checkout; for disk-loss recovery, clone the repository and work from the cloned `experiments/r10/byoi` instead.
+
+```bash
+(
+  TMP="/var/folders/p3/ydjk_m194wn_ffc9zhkqm1xh0000gn/T/edh-r10-deploy.YnMwJm"
+  DEST="$TMP/experiments/r10/byoi/worker.mjs"
+  STAGED="$DEST.next"
+  if [ ! -f "$DEST" ]; then
+    printf '[FAIL] Existing Worker file not found\\n'
+  elif gh api -H "Accept: application/vnd.github.raw+json" \\
+    "repos/edh-project/edh-adr-preflight/contents/experiments/r10/byoi/worker.mjs?ref=experiment/r10-byoi-access-smoke" > "$STAGED"; then
+    if node --input-type=module --check < "$STAGED"; then
+      mv "$STAGED" "$DEST"
+      printf '[OK] Updated Worker staged and validated\\n'
+      grep -n 'R10_GATE_ID\\|idFromName(gateName)' "$DEST"
+    else
+      printf '[FAIL] JavaScript syntax validation failed\\n'
+      rm -f "$STAGED"
+    fi
+  else
+    printf '[FAIL] GitHub download failed\\n'
+    rm -f "$STAGED"
+  fi
+)
+```
+
+**Checkpoint:** source staging and syntax validation confirmed; deployment of gate isolation **not yet confirmed**. Do not mistake the successful staging output for a Cloudflare deployment.
+
+## Deployment checkpoint — 2026-11-28 (user-confirmed)
+
+Gate-isolation Worker code was uploaded with Wrangler 4.169.0; current version ID **`4a0a8b2d-1fe8-4709-ac71-029e4e13af20`**. Output confirmed Durable Object binding `R10_NONCES (R10NonceGate)` and VPC Service binding `PRIVATE_GATEWAY (01a21d39-e39c-75a0-9bea-a82ad41879af)`. Wrangler said **`No targets deployed`**, i.e. no publicly routable Worker target. This is an uploaded/current Worker version, **not proof of public ingress or runtime execution**. Next: set `R10_GATE_ID=r10-byoi-diagnostic-v1` as a Worker secret, renew expired deadline only when ready for runtime checks, then configure reviewed HTTPS ingress. Do not use benchmark gate for diagnostics.
+
+## Checkpoint — diagnostic gate secret provisioned (2026-11-28)
+
+User confirmed Wrangler 4.169.0 output `Success! Uploaded secret R10_GATE_ID` for `edh-r10-byoi-worker`. Intended value was `r10-byoi-diagnostic-v1` from the command supplied immediately beforehand. No runtime request has yet verified the value, Durable Object persistence, public ingress, or VPC forwarding. The previous `R10_NOT_AFTER` is time-limited and must be renewed immediately before an authorized diagnostic request.
+
+## Checkpoint — gateway bearer rotation and terminal map (2026-11-28)
+
+User confirmed the former gateway terminal is **terminal 3**, not terminal 1. Port 8092 remained listening (PID 47102); port 8093 was not listening after the prior 900-second gateway session ended. A persistent bearer token file `~/.config/edh/r10/gateway.token` **did not previously exist**; the old bearer value had only been recovered from the gateway process environment and written to GitHub secret. The old process ended and its token was unavailable. User then created a new 64-character hex bearer token in `~/.config/edh/r10/gateway.token` (0600) and successfully replaced GitHub environment secret `R10_API_KEY` with its exact bytes. No bearer value was printed or committed. Terminal 3 was restarted with:
+
+```bash
+cd "$HOME/WORK/_edh/edh-4b-jsonl-pilot/gateway.DvjNfX"
+R10_GATEWAY_TOKEN="$(cat "$HOME/.config/edh/r10/gateway.token")" \\
+  python3 gateway.py --port 8093 --ttl 900 --limit 18
+```
+
+The command remains in foreground without output; **listener and successful startup have not yet been independently verified**. Check port 8093 with `lsof -nP -iTCP:8093 -sTCP:LISTEN` from terminal 4, without interrupting terminal 3. Do not assume silence implies success. Token file is a local convenience, **not a disk-independent backup**. Back up securely or rotate on recovery. Gateway TTL is 15 minutes; consider a longer explicit TTL only after reviewing gateway code and expected experiment duration. Existing HMAC key remains unchanged.
+
+## Confirmed gateway TTL expiry and recovery scenario — 2026-11-28
+
+**Observed evidence (terminal 4):**
+
+```text
+=== R10 LOCAL SERVICES ===
+[OK] Port 8092 listening (PID 47102)
+[FAIL] Port 8093 not listening
+```
+
+The original gateway was started in **terminal 3** with `python3 gateway.py --port 8093 --ttl 900 --limit 18`. The process subsequently stopped listening on 8093 while llama.cpp continued on 8092. **TTL expiry is the likely cause, but the exit reason was not independently verified from gateway logs or source; do not claim it as proven.** The previously used bearer token was recoverable from the old process environment only while that process existed. No persistent token file existed at that time.
+
+**Recovery executed:** create `~/.config/edh/r10/gateway.token` with `umask 077; openssl rand -hex 32`, chmod 600, and update GitHub environment secret `R10_API_KEY` using file stdin; leave Cloudflare `R10_HMAC_KEY` unchanged. User confirmed:
+
+```text
+[OK] New gateway token created
+✓ Set Actions secret R10_API_KEY for edh-project/edh-adr-preflight
+[OK] GitHub R10_API_KEY synchronized
+```
+
+Then in **terminal 3**, launch gateway in foreground (do not interrupt this terminal):
+
+```bash
+cd "$HOME/WORK/_edh/edh-4b-jsonl-pilot/gateway.DvjNfX"
+R10_GATEWAY_TOKEN="$(cat "$HOME/.config/edh/r10/gateway.token")" \
+  python3 gateway.py --port 8093 --ttl 900 --limit 18
+```
+
+Verify independently in **terminal 4** (no secrets printed, no request quota consumed):
+
+```bash
+(
+  printf '=== R10 LOCAL SERVICES ===\n'
+  for PORT in 8092 8093; do
+    PID="$(lsof -nP -tiTCP:"$PORT" -sTCP:LISTEN | head -n 1)"
+    if [ -n "$PID" ]; then
+      printf '[OK] Port %s listening (PID %s)\n' "$PORT" "$PID"
+    else
+      printf '[FAIL] Port %s not listening\n' "$PORT"
+    fi
+  done
+)
+```
+
+**Observed successful recovery:**
+
+```text
+=== R10 LOCAL SERVICES ===
+[OK] Port 8092 listening (PID 47102)
+[OK] Port 8093 listening (PID 24464)
+```
+
+These PIDs are historical evidence, **not reusable identifiers**. Port listening verifies local process presence, not authenticated gateway request, Cloudflare VPC transport, or inference. The restarted gateway also has `--ttl 900` and can stop again; do not delay real diagnostics after restart. If the gateway stops, check port 8093 first, then restart it using the existing persistent token file; **do not rotate the token again unnecessarily**. Only rotate if lost/compromised, and synchronize the new token to GitHub before testing. Do not regenerate HMAC key. In a disk-loss scenario, the bearer file itself is lost unless independently backed up.
+
+**Remaining:** validate live tunnel and gateway auth before opening temporary HTTPS ingress; renew `R10_NOT_AFTER` just before diagnostic calls; do not consume the nine-admission benchmark gate.

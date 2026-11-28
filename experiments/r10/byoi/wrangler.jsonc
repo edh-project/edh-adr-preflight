@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "edh-r10-byoi-worker",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-28",
+  "workers_dev": false,
+  "vpc_services": [
+    {"binding": "PRIVATE_GATEWAY", "service_id": "01a21d39-e39c-75a0-9bea-a82ad41879af", "remote": true}
+  ],
+  "durable_objects": {
+    "bindings": [{"name": "R10_NONCES", "class_name": "R10NonceGate"}]
+  },
+  "migrations": [{"tag": "r10-nonce-v1", "new_sqlite_classes": ["R10NonceGate"]}]
+}

@@ -1,0 +1,9 @@
+# Private VPC transport (R10 smoke candidate)
+
+Cloudflare Worker-level Access must be configured with exactly one dedicated Service Auth policy matching the benchmark service token; no bypass, broad allow, or account-wide policy changes. The Worker checks platform-authenticated `ctx.access.aud` against the dedicated application's audience. It never treats incoming Access headers as identity. A separate local gateway grant remains required, and only that Authorization header and JSON content type are forwarded.
+
+Deployment configuration is intentionally inactive: `workers_dev=false`, `preview_urls=false`, no routes, no audience or deadline. Copy the template to a private local deployment directory and insert the registered VPC Service ID. Never commit actual resource IDs, credentials, or live configuration. Before enabling a route, establish exclusive Access Service Auth, set POLICY_AUD and R10_NOT_AFTER, and confirm negative live tests. Missing configuration closes admission. The VPC service pins the destination; the gateway independently enforces frozen payloads, bounded quota, TTL, and loopback inference. No generic proxy.
+
+Run offline tests with `node --test worker.test.mjs`. Fixtures simulate platform context and VPC binding; these tests do not establish live platform authentication, connectivity, or inference. Verify that Cloudflare provides the expected context for actual Service Auth before claiming acceptance.
+
+References: [Workers VPC service bindings](https://developers.cloudflare.com/workers-vpc/configuration/vpc-services/), [Worker-level Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/), [Access JWT validation and platform context](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/).
