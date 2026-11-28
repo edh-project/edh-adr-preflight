@@ -125,3 +125,7 @@ The following **stages and validates but does not deploy** the updated Worker. I
 ## Deployment checkpoint — 2026-11-28 (user-confirmed)
 
 Gate-isolation Worker code was uploaded with Wrangler 4.169.0; current version ID **`4a0a8b2d-1fe8-4709-ac71-029e4e13af20`**. Output confirmed Durable Object binding `R10_NONCES (R10NonceGate)` and VPC Service binding `PRIVATE_GATEWAY (01a21d39-e39c-75a0-9bea-a82ad41879af)`. Wrangler said **`No targets deployed`**, i.e. no publicly routable Worker target. This is an uploaded/current Worker version, **not proof of public ingress or runtime execution**. Next: set `R10_GATE_ID=r10-byoi-diagnostic-v1` as a Worker secret, renew expired deadline only when ready for runtime checks, then configure reviewed HTTPS ingress. Do not use benchmark gate for diagnostics.
+
+## Checkpoint — diagnostic gate secret provisioned (2026-11-28)
+
+User confirmed Wrangler 4.169.0 output `Success! Uploaded secret R10_GATE_ID` for `edh-r10-byoi-worker`. Intended value was `r10-byoi-diagnostic-v1` from the command supplied immediately beforehand. No runtime request has yet verified the value, Durable Object persistence, public ingress, or VPC forwarding. The previous `R10_NOT_AFTER` is time-limited and must be renewed immediately before an authorized diagnostic request.
