@@ -19,7 +19,7 @@ async function request(body="{}", overrides={}) {
 }
 function fixture() {
  const calls=[];const seen=new Set();let count=0;
- const env={R10_HMAC_KEY:key,R10_NOT_AFTER:new Date(Date.now()+120000).toISOString(),
+ const env={R10_GATE_ID:"r10-byoi-diagnostic-v1",R10_HMAC_KEY:key,R10_NOT_AFTER:new Date(Date.now()+120000).toISOString(),
   R10_NONCES:{idFromName:()=>({}),get:()=>({fetch:async(_url,opts)=>{
     const {nonce}=JSON.parse(opts.body);
     if(seen.has(nonce))return new Response(null,{status:409});
@@ -29,8 +29,8 @@ function fixture() {
   PRIVATE_GATEWAY:{async fetch(target,options){calls.push({target,options});return new Response('{"choices":[]}',{status:200});}}};
  return {env,calls};
 }
-test("closed without key, nonce binding, or deadline",async()=>{
- for(const missing of ["R10_HMAC_KEY","R10_NONCES","R10_NOT_AFTER"]){
+test("closed without key, nonce binding, deadline, or gate selection",async()=>{
+ for(const missing of ["R10_HMAC_KEY","R10_NONCES","R10_NOT_AFTER","R10_GATE_ID"]){
   const {env,calls}=fixture();delete env[missing];
   assert.equal((await worker.fetch(await request(),env,{})).status,503);
   assert.equal(calls.length,0);
@@ -76,4 +76,17 @@ test("nonce gate serializes storage, rejects replay and enforces quota",async()=
  assert.equal(results.filter(r=>r.status===204).length,9);
  assert.equal(results.filter(r=>r.status===429).length,3);
  assert.equal((await admit("0".repeat(32))).status,409);
+});
+
+test("diagnostic and benchmark ledgers are distinct and unknown IDs fail closed",async()=>{
+ const ids=[];
+ const {env}=fixture();
+ env.R10_NONCES.idFromName=name=>{ids.push(name);return {};};
+ assert.equal((await worker.fetch(await request(),env,{})).status,200);
+ env.R10_GATE_ID="r10-byoi-one-shot";
+ assert.equal((await worker.fetch(await request(),env,{})).status,200);
+ assert.deepEqual(ids,["r10-byoi-diagnostic-v1","r10-byoi-one-shot"]);
+ env.R10_GATE_ID="unexpected";
+ assert.equal((await worker.fetch(await request(),env,{})).status,503);
+ assert.equal(ids.length,2);
 });
