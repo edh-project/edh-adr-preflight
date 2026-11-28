@@ -38,7 +38,14 @@ concurrency:
   cancel-in-progress: false
 jobs:
   gate:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.ref == 'refs/heads/experiment/r10-byoi-access-smoke' &&
+       inputs.mode == 'external-api' &&
+       inputs.external_profile == 'macbook-local' &&
+       inputs.suite == 'adr-only' &&
+       inputs.repeats == '1' &&
+       inputs.authorize_nonfree)
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
