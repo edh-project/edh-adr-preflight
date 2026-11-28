@@ -71,7 +71,7 @@ export default {
     catch { return fail(413, "body limit"); }
     if (!body.byteLength || Date.now() >= deadline) return fail(400, "request denied");
     const digest = hex(await crypto.subtle.digest("SHA-256", body));
-    const signed = ["R10-HMAC-v1", ts, nonce, "POST", PATH, digest].join("\\n");
+    const signed = ["R10-HMAC-v1", ts, nonce, "POST", PATH, digest].join("\n");
     const expected = await mac(env.R10_HMAC_KEY, signed);
     // Constant-time comparison of fixed-length ASCII digests.
     let diff = 0;
