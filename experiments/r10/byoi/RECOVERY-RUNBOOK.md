@@ -141,3 +141,59 @@ R10_GATEWAY_TOKEN="$(cat "$HOME/.config/edh/r10/gateway.token")" \\
 ```
 
 The command remains in foreground without output; **listener and successful startup have not yet been independently verified**. Check port 8093 with `lsof -nP -iTCP:8093 -sTCP:LISTEN` from terminal 4, without interrupting terminal 3. Do not assume silence implies success. Token file is a local convenience, **not a disk-independent backup**. Back up securely or rotate on recovery. Gateway TTL is 15 minutes; consider a longer explicit TTL only after reviewing gateway code and expected experiment duration. Existing HMAC key remains unchanged.
+
+## Confirmed gateway TTL expiry and recovery scenario — 2026-11-28
+
+**Observed evidence (terminal 4):**
+
+```text
+=== R10 LOCAL SERVICES ===
+[OK] Port 8092 listening (PID 47102)
+[FAIL] Port 8093 not listening
+```
+
+The original gateway was started in **terminal 3** with `python3 gateway.py --port 8093 --ttl 900 --limit 18`. The process subsequently stopped listening on 8093 while llama.cpp continued on 8092. **TTL expiry is the likely cause, but the exit reason was not independently verified from gateway logs or source; do not claim it as proven.** The previously used bearer token was recoverable from the old process environment only while that process existed. No persistent token file existed at that time.
+
+**Recovery executed:** create `~/.config/edh/r10/gateway.token` with `umask 077; openssl rand -hex 32`, chmod 600, and update GitHub environment secret `R10_API_KEY` using file stdin; leave Cloudflare `R10_HMAC_KEY` unchanged. User confirmed:
+
+```text
+[OK] New gateway token created
+✓ Set Actions secret R10_API_KEY for edh-project/edh-adr-preflight
+[OK] GitHub R10_API_KEY synchronized
+```
+
+Then in **terminal 3**, launch gateway in foreground (do not interrupt this terminal):
+
+```bash
+cd "$HOME/WORK/_edh/edh-4b-jsonl-pilot/gateway.DvjNfX"
+R10_GATEWAY_TOKEN="$(cat "$HOME/.config/edh/r10/gateway.token")" \
+  python3 gateway.py --port 8093 --ttl 900 --limit 18
+```
+
+Verify independently in **terminal 4** (no secrets printed, no request quota consumed):
+
+```bash
+(
+  printf '=== R10 LOCAL SERVICES ===\n'
+  for PORT in 8092 8093; do
+    PID="$(lsof -nP -tiTCP:"$PORT" -sTCP:LISTEN | head -n 1)"
+    if [ -n "$PID" ]; then
+      printf '[OK] Port %s listening (PID %s)\n' "$PORT" "$PID"
+    else
+      printf '[FAIL] Port %s not listening\n' "$PORT"
+    fi
+  done
+)
+```
+
+**Observed successful recovery:**
+
+```text
+=== R10 LOCAL SERVICES ===
+[OK] Port 8092 listening (PID 47102)
+[OK] Port 8093 listening (PID 24464)
+```
+
+These PIDs are historical evidence, **not reusable identifiers**. Port listening verifies local process presence, not authenticated gateway request, Cloudflare VPC transport, or inference. The restarted gateway also has `--ttl 900` and can stop again; do not delay real diagnostics after restart. If the gateway stops, check port 8093 first, then restart it using the existing persistent token file; **do not rotate the token again unnecessarily**. Only rotate if lost/compromised, and synchronize the new token to GitHub before testing. Do not regenerate HMAC key. In a disk-loss scenario, the bearer file itself is lost unless independently backed up.
+
+**Remaining:** validate live tunnel and gateway auth before opening temporary HTTPS ingress; renew `R10_NOT_AFTER` just before diagnostic calls; do not consume the nine-admission benchmark gate.
