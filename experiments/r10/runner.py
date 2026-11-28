@@ -55,7 +55,9 @@ def request_model(inp):
         if key: headers['Authorization']='Bearer '+key
         payload={**settings,'messages':[{'role':'system','content':system},{'role':'user','content':inp}]}
         path='/v1/chat/completions' if args.profile=='local' else '/chat/completions'
-    encoded=compact(payload).encode()\n    headers.update(access_headers(args.profile,args.provider,base,args.suite,args.repeats,settings['model'],os.environ,encoded))\n    req=urllib.request.Request(base+path,data=encoded,headers=headers)
+    encoded=compact(payload).encode()
+    headers.update(access_headers(args.profile,args.provider,base,args.suite,args.repeats,settings['model'],os.environ,encoded))
+    req=urllib.request.Request(base+path,data=encoded,headers=headers)
     with opener.open(req,timeout=90) as f: raw=json.load(f)
     if args.provider=='anthropic':
         usage=raw.get('usage',{})
