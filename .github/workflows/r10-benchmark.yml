@@ -137,8 +137,7 @@ jobs:
           R10_URL: ${{ vars.R10_URL }}
           R10_MODEL: ${{ vars.R10_MODEL }}
           R10_API_KEY: ${{ secrets.R10_API_KEY }}
-          CF_ACCESS_CLIENT_ID: ${{ inputs.external_profile == 'macbook-local' && secrets.CF_ACCESS_CLIENT_ID || '' }}
-          CF_ACCESS_CLIENT_SECRET: ${{ inputs.external_profile == 'macbook-local' && secrets.CF_ACCESS_CLIENT_SECRET || '' }}
+          R10_HMAC_KEY: ${{ inputs.external_profile == 'macbook-local' && secrets.R10_HMAC_KEY || '' }}
           PROFILE: ${{ inputs.external_profile }}
         run: |
           test "$R10_EXTERNAL_APPROVED" = true && test -n "$R10_URL" && test -n "$R10_MODEL" || { echo 'Approved environment configuration required'; exit 1; }
