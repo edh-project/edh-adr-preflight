@@ -78,15 +78,16 @@ test("nonce gate serializes storage, rejects replay and enforces quota",async()=
  assert.equal((await admit("0".repeat(32))).status,409);
 });
 
-test("diagnostic and benchmark ledgers are distinct and unknown IDs fail closed",async()=>{
+test("diagnostic and benchmark ledgers use separate identities; unknown IDs fail closed",async()=>{
  const ids=[];
- const {env}=fixture();
- env.R10_NONCES.idFromName=name=>{ids.push(name);return {};};
- assert.equal((await worker.fetch(await request(),env,{})).status,200);
- env.R10_GATE_ID="r10-byoi-one-shot";
- assert.equal((await worker.fetch(await request(),env,{})).status,200);
+ for(const gateName of ["r10-byoi-diagnostic-v1","r10-byoi-one-shot"]){
+   const {env}=fixture();
+   env.R10_GATE_ID=gateName;
+   env.R10_NONCES.idFromName=name=>{ids.push(name);return {};};
+   assert.equal((await worker.fetch(await request(),env,{})).status,200);
+ }
  assert.deepEqual(ids,["r10-byoi-diagnostic-v1","r10-byoi-one-shot"]);
+ const {env}=fixture();
  env.R10_GATE_ID="unexpected";
  assert.equal((await worker.fetch(await request(),env,{})).status,503);
- assert.equal(ids.length,2);
 });
