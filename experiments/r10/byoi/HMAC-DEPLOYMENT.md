@@ -11,8 +11,8 @@ Only `POST /v1/chat/completions` with no query string is admitted. GitHub signs
 the **exact UTF-8 request bytes** with a dedicated `R10_HMAC_KEY` secret:
 
 ```
-message = "R10-HMAC-v1\n" + timestamp_ms + "\n" + nonce_hex_16_bytes +
-          "\nPOST\n/v1/chat/completions\n" + sha256(body).hexdigest()
+message = "R10-HMAC-v2\n" + timestamp_ms + "\n" + nonce_hex_16_bytes +
+          "\nPOST\n/v1/chat/completions\n" + sha256(body).hexdigest() + "\n" + sha256(("Bearer " + grant).encode()).hexdigest()
 signature = hmac_sha256(key, message).hexdigest()
 ```
 
