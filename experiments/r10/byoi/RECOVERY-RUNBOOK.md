@@ -129,3 +129,15 @@ Gate-isolation Worker code was uploaded with Wrangler 4.169.0; current version I
 ## Checkpoint — diagnostic gate secret provisioned (2026-11-28)
 
 User confirmed Wrangler 4.169.0 output `Success! Uploaded secret R10_GATE_ID` for `edh-r10-byoi-worker`. Intended value was `r10-byoi-diagnostic-v1` from the command supplied immediately beforehand. No runtime request has yet verified the value, Durable Object persistence, public ingress, or VPC forwarding. The previous `R10_NOT_AFTER` is time-limited and must be renewed immediately before an authorized diagnostic request.
+
+## Checkpoint — gateway bearer rotation and terminal map (2026-11-28)
+
+User confirmed the former gateway terminal is **terminal 3**, not terminal 1. Port 8092 remained listening (PID 47102); port 8093 was not listening after the prior 900-second gateway session ended. A persistent bearer token file `~/.config/edh/r10/gateway.token` **did not previously exist**; the old bearer value had only been recovered from the gateway process environment and written to GitHub secret. The old process ended and its token was unavailable. User then created a new 64-character hex bearer token in `~/.config/edh/r10/gateway.token` (0600) and successfully replaced GitHub environment secret `R10_API_KEY` with its exact bytes. No bearer value was printed or committed. Terminal 3 was restarted with:
+
+```bash
+cd "$HOME/WORK/_edh/edh-4b-jsonl-pilot/gateway.DvjNfX"
+R10_GATEWAY_TOKEN="$(cat "$HOME/.config/edh/r10/gateway.token")" \\
+  python3 gateway.py --port 8093 --ttl 900 --limit 18
+```
+
+The command remains in foreground without output; **listener and successful startup have not yet been independently verified**. Check port 8093 with `lsof -nP -iTCP:8093 -sTCP:LISTEN` from terminal 4, without interrupting terminal 3. Do not assume silence implies success. Token file is a local convenience, **not a disk-independent backup**. Back up securely or rotate on recovery. Gateway TTL is 15 minutes; consider a longer explicit TTL only after reviewing gateway code and expected experiment duration. Existing HMAC key remains unchanged.
