@@ -9,7 +9,7 @@ const hex = bytes=>Buffer.from(bytes).toString("hex");
 async function request(body="{}", overrides={}) {
  const ts=String(Date.now()), nonce="a".repeat(32);
  const digest=hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(body)));
- const msg=["R10-HMAC-v1",ts,nonce,"POST",PATH,digest].join("\n");
+ const msg=["R10-HMAC-v2",ts,nonce,"POST",PATH,digest,hex(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(grant)))].join("\n");
  const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(key),{name:"HMAC",hash:"SHA-256"},false,["sign"]);
  const signature=hex(await crypto.subtle.sign("HMAC",k,new TextEncoder().encode(msg)));
  return new Request(overrides.url||url,{method:overrides.method||"POST",
