@@ -48,6 +48,10 @@ export default {
     // Billing-independent admission: signed, short-lived request + independent gateway grant.
     // Do not enable a public route until the signed-request tests and secret provisioning pass.
     const deadline = Date.parse(env.R10_NOT_AFTER || "");
+    // Explicitly select an isolated admission ledger. Missing/unknown selection fails closed.
+    const gateName = env.R10_GATE_ID;
+    if (!["r10-byoi-diagnostic-v1", "r10-byoi-one-shot"].includes(gateName))
+      return fail(503, "admission ledger not configured");
     if (!env.R10_HMAC_KEY || env.R10_HMAC_KEY.length < 32 || !env.R10_NONCES ||
         !Number.isFinite(deadline) || Date.now() >= deadline)
       return fail(503, "admission closed");
@@ -81,7 +85,7 @@ export default {
     // A single Durable Object serializes nonce admission and the total request quota.
     // Failure to reach it closes admission; never silently skip replay protection.
     try {
-      const id = env.R10_NONCES.idFromName("r10-byoi-one-shot");
+      const id = env.R10_NONCES.idFromName(gateName);
       const gate = await env.R10_NONCES.get(id).fetch("https://internal/admit", {
         method: "POST", headers: {"Content-Type":"application/json"},
         body: JSON.stringify({nonce, deadline})
