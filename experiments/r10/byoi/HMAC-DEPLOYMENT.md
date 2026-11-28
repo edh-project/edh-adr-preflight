@@ -23,7 +23,7 @@ The Durable Object enforces **at most nine admitted requests per deployed
 object identity**, including requests that later fail at the gateway.
 No bypass exists when the nonce store is unavailable. This is an intentionally
 single-shot experiment; a fresh experiment requires a new gate identity
-or an audited reset procedure. A fixed identity is used by default.
+or an audited reset procedure. The Worker now requires explicit `R10_GATE_ID`: `r10-byoi-diagnostic-v1` for controlled diagnostic admission or `r10-byoi-one-shot` for the nine-request benchmark. Missing/unknown values fail closed. Switching the value does not clear either object’s persistent counters.
 
 The gateway separately verifies `Authorization: Bearer <grant>`; the Worker
 only forwards that header and the JSON body. Keep HMAC key and gateway grant
@@ -46,7 +46,7 @@ to the token used by the local gateway process.
    and `node --test experiments/r10/byoi/worker.test.mjs`.
 2. Verify the actual deployed Worker code and Durable Object migration/binding;
    check Cloudflare plan support and possible usage charges before deployment.
-3. Set Worker secret `R10_HMAC_KEY` (>=32 ASCII characters) and Worker variable
+3. Set Worker secret `R10_HMAC_KEY` (>=32 ASCII characters), `R10_GATE_ID` (first diagnostic, then benchmark), and Worker variable
    `R10_NOT_AFTER` (short future UTC ISO timestamp).
 4. Set GitHub environment secrets `R10_HMAC_KEY` and `R10_API_KEY`, and
    variables `R10_EXTERNAL_APPROVED=true`, `R10_MODEL=qwen4b`, and
@@ -62,3 +62,7 @@ keeps ingress disabled; publishing a hostname requires a separately reviewed
 route. This branch has not been deployed or validated end-to-end. The earlier
 Access-based Worker remains the live deployment. No billing-free guarantee
 is made for Durable Objects without verifying the account plan.
+
+## Deployment note (2026-11-28)
+
+The HMAC v2 Worker was deployed to Cloudflare as version `d4c66239-ab24-475d-8950-302de9695d98`; the existing Tunnel connected with four QUIC sessions. `R10_HMAC_KEY` and `R10_NOT_AFTER` were uploaded as Worker secrets; GitHub environment `r10-macbook-local` received `R10_HMAC_KEY` and `R10_API_KEY`. **This branch’s gate-isolation change is not yet deployed.** Deploy the updated Worker and explicitly configure `R10_GATE_ID` before any signed request. The configured deadline may expire before the E2E run; renew only immediately before testing. A public HTTPS route and actual VPC/DO runtime have not yet been verified. Do not treat the tunnel connectivity pre-check as proof of VPC-to-gateway reachability.
