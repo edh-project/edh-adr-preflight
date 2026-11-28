@@ -35,7 +35,7 @@ for i in $(seq 1 120); do
 done
 if [ "$ready" != true ]; then tail -50 "$work/server.log"; exit 1; fi
 cd "$GITHUB_WORKSPACE" || exit 1
-python3 experiments/r10/runner.py --output reports/r10 --suite "$R10_SUITE" --repeats "$R10_REPEATS"
+python3 experiments/r10/runner.py --output reports/r10 --suite "$R10_SUITE" --repeats "$R10_REPEATS" --protocol "${R10_PROTOCOL:-format-only}"
 rc=$?
 printf 'Inference exit status: %s\n' "$rc"
 exit "$rc"
