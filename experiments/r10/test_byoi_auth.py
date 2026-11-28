@@ -18,7 +18,7 @@ class TestBYOIAuth(unittest.TestCase):
             h=self.call()
         self.assertEqual(h["X-R10-Timestamp"],"1700000000000")
         self.assertEqual(h["X-R10-Nonce"],"a"*32)
-        msg="\n".join(("R10-HMAC-v1","1700000000000","a"*32,"POST","/v1/chat/completions",hashlib.sha256(b'{"model":"qwen4b"}').hexdigest()))
+        msg="\n".join(("R10-HMAC-v2","1700000000000","a"*32,"POST","/v1/chat/completions",hashlib.sha256(b'{"model":"qwen4b"}').hexdigest(),hashlib.sha256(("Bearer "+"g"*43).encode()).hexdigest()))
         self.assertEqual(h["X-R10-Signature"],hmac.new(b"K"*40,msg.encode(),hashlib.sha256).hexdigest())
     def test_other_profiles(self):
         for profile in ("local","external-1","openai","anthropic"):
