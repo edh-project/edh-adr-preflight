@@ -45,7 +45,7 @@ if args.provider!='llama':
     for k in ('seed','cache_prompt','chat_template_kwargs'): settings.pop(k,None)
 byoi_headers=access_headers(args.profile,args.provider,base,args.suite,args.repeats,settings['model'],os.environ)
 def request_model(inp):
-    headers={'Content-Type':'application/json',**byoi_headers}
+    headers={'Content-Type':'application/json'}
     if args.provider=='anthropic':
         if not key: raise ValueError('Missing API key')
         headers.update({'x-api-key':key,'anthropic-version':'2023-06-01'})
@@ -55,7 +55,7 @@ def request_model(inp):
         if key: headers['Authorization']='Bearer '+key
         payload={**settings,'messages':[{'role':'system','content':system},{'role':'user','content':inp}]}
         path='/v1/chat/completions' if args.profile=='local' else '/chat/completions'
-    req=urllib.request.Request(base+path,data=compact(payload).encode(),headers=headers)
+    encoded=compact(payload).encode()\n    headers.update(access_headers(args.profile,args.provider,base,args.suite,args.repeats,settings['model'],os.environ,encoded))\n    req=urllib.request.Request(base+path,data=encoded,headers=headers)
     with opener.open(req,timeout=90) as f: raw=json.load(f)
     if args.provider=='anthropic':
         usage=raw.get('usage',{})
