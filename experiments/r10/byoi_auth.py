@@ -32,7 +32,8 @@ def access_headers(profile, provider, base, suite, repeats, model, env, body=Non
     timestamp = str(int(time.time() * 1000))
     nonce = secrets.token_hex(16)
     digest = hashlib.sha256(body).hexdigest()
-    message = "\n".join(("R10-HMAC-v1", timestamp, nonce, "POST", PATH, digest))
+    grant_digest = hashlib.sha256(("Bearer " + grant).encode()).hexdigest()
+    message = "\n".join(("R10-HMAC-v2", timestamp, nonce, "POST", PATH, digest, grant_digest))
     signature = hmac.new(key.encode(), message.encode(), hashlib.sha256).hexdigest()
     return {"X-R10-Timestamp": timestamp, "X-R10-Nonce": nonce,
             "X-R10-Signature": signature}
