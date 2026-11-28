@@ -48,13 +48,13 @@ export default {
     // Billing-independent admission: signed, short-lived request + independent gateway grant.
     // Do not enable a public route until the signed-request tests and secret provisioning pass.
     const deadline = Date.parse(env.R10_NOT_AFTER || "");
-    if (!env.R10_HMAC_KEY || env.R10_HMAC_KEY.length < 32 ||
+    if (!env.R10_HMAC_KEY || env.R10_HMAC_KEY.length < 32 || !env.R10_NONCES ||
         !Number.isFinite(deadline) || Date.now() >= deadline)
       return fail(503, "admission closed");
     const ts = request.headers.get("X-R10-Timestamp") || "";
     const nonce = request.headers.get("X-R10-Nonce") || "";
     const sig = request.headers.get("X-R10-Signature") || "";
-    if (!/^\\d{13}$/.test(ts) || !/^[a-f0-9]{32}$/.test(nonce) || !isHex(sig))
+    if (!/^\d{13}$/.test(ts) || !/^[a-f0-9]{32}$/.test(nonce) || !isHex(sig))
       return fail(403, "signature required");
     const now = Date.now();
     if (Math.abs(now - Number(ts)) > MAX_SKEW_MS || Number(ts) >= deadline)
@@ -77,6 +77,16 @@ export default {
     let diff = 0;
     for (let i=0;i<64;i++) diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
     if (diff !== 0) return fail(403, "signature invalid");
+    // A single Durable Object serializes nonce admission and the total request quota.
+    // Failure to reach it closes admission; never silently skip replay protection.
+    try {
+      const id = env.R10_NONCES.idFromName("r10-byoi-one-shot");
+      const gate = await env.R10_NONCES.get(id).fetch("https://internal/admit", {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({nonce, deadline})
+      });
+      if (!gate.ok) return fail(gate.status === 409 ? 409 : 429, "replay or quota denied");
+    } catch { return fail(503, "replay protection unavailable"); }
     try {
       const response = await env.PRIVATE_GATEWAY.fetch(TARGET, {
         method: "POST", redirect: "manual",
@@ -95,3 +105,25 @@ export default {
     } catch { return fail(502, "private transport unavailable"); }
   }
 };
+
+export class R10NonceGate {
+  constructor(state) { this.state = state; }
+  async fetch(request) {
+    if (request.method !== "POST" || new URL(request.url).pathname !== "/admit")
+      return fail(404, "route denied");
+    let data;
+    try { data = await request.json(); } catch { return fail(400, "invalid admission"); }
+    if (!/^[a-f0-9]{32}$/.test(data?.nonce || "") ||
+        !Number.isFinite(data?.deadline) || Date.now() >= data.deadline)
+      return fail(403, "admission expired");
+    return this.state.storage.transaction(async tx => {
+      const seen = await tx.get("nonce:" + data.nonce);
+      if (seen) return fail(409, "replay denied");
+      const count = (await tx.get("count")) || 0;
+      if (count >= 9) return fail(429, "quota exceeded");
+      await tx.put("nonce:" + data.nonce, true);
+      await tx.put("count", count + 1);
+      return new Response(null, {status: 204});
+    });
+  }
+}
